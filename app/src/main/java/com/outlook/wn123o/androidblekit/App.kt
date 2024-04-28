@@ -9,9 +9,9 @@ import com.outlook.wn123o.blekit.common.BleKitOptions
 class App: Application() {
     override fun onCreate() {
         super.onCreate()
-        val options = BleKitOptions(this)
+        val options = BleKitOptions()
         options.leScanMode = ScanSettings.SCAN_MODE_BALANCED
         options.leAdvertiseMode = AdvertiseSettings.ADVERTISE_MODE_BALANCED
-        BleKitScope.initialize(options)
+        BleKitScope.initialize(this, options)
     }
 }
