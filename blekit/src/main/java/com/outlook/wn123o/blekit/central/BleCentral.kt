@@ -3,7 +3,6 @@ package com.outlook.wn123o.blekit.central
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
-import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.content.Context
 import com.outlook.wn123o.blekit.Env

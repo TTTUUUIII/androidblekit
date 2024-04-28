@@ -9,11 +9,9 @@ import androidx.lifecycle.ViewModelProvider
 import com.outlook.wn123o.androidblekit.MainActivityViewModel
 import com.outlook.wn123o.androidblekit.R
 import com.outlook.wn123o.androidblekit.common.toast
-import com.outlook.wn123o.androidblekit.databinding.FragmentBleCentralBinding
 import com.outlook.wn123o.androidblekit.databinding.FragmentBlePeripheralBinding
 import com.outlook.wn123o.androidblekit.databinding.MessageWindowViewBinding
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralCallback
-import com.outlook.wn123o.blekit.peripheral.BlePeripheral
 
 class BlePeripheralFragment : Fragment(), BlePeripheralCallback {
 
@@ -39,9 +37,7 @@ class BlePeripheralFragment : Fragment(), BlePeripheralCallback {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
-        return binding.root
-    }
+    ): View = binding.root
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

@@ -13,13 +13,11 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
-import com.outlook.wn123o.androidblekit.MainActivity
 import com.outlook.wn123o.androidblekit.MainActivityViewModel
 import com.outlook.wn123o.androidblekit.R
 import com.outlook.wn123o.androidblekit.databinding.FragmentBleScanBinding
 import com.outlook.wn123o.androidblekit.databinding.ItemDeviceViewBinding
 import com.outlook.wn123o.blekit.BleKitScope
-import com.outlook.wn123o.blekit.central.BleCentral
 import com.outlook.wn123o.blekit.central.BleScanCallback
 import com.outlook.wn123o.blekit.common.BleDevice
 
@@ -41,10 +39,7 @@ class BleScanFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
-        // Inflate the layout for this fragment
-        return binding.root
-    }
+    ): View = binding.root
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -64,6 +59,7 @@ class BleScanFragment : Fragment() {
             itemBinding.nameTextView.text = device.deviceName ?: "Unknown"
             itemBinding.rssiTextView.text = "${device.rssi}"
             itemBinding.connectButton.setOnClickListener {
+                bleCentral.stopScan(mBleScanCallback)
                 val arguments = Bundle()
                     .apply {
                         putParcelable(BleCentralFragment.KEY_PARAM_BLE_DEVICE, device.device)
