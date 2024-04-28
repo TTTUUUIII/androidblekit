@@ -30,4 +30,6 @@ object BleKitScope {
         Env.expectMtuSize = options.expectMtuSize
         Env.debug = options.debug
     }
+
+    fun getServiceUuid() = Env.serviceUuid
 }

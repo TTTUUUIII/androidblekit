@@ -18,6 +18,7 @@ import com.outlook.wn123o.androidblekit.MainActivityViewModel
 import com.outlook.wn123o.androidblekit.R
 import com.outlook.wn123o.androidblekit.databinding.FragmentBleScanBinding
 import com.outlook.wn123o.androidblekit.databinding.ItemDeviceViewBinding
+import com.outlook.wn123o.blekit.BleKitScope
 import com.outlook.wn123o.blekit.central.BleCentral
 import com.outlook.wn123o.blekit.central.BleScanCallback
 import com.outlook.wn123o.blekit.common.BleDevice
@@ -113,7 +114,7 @@ class BleScanFragment : Fragment() {
     private fun startDiscovery() {
         val filter = ScanFilter
             .Builder()
-            .setServiceUuid(ParcelUuid.fromString("39cde689-fcfc-45d5-841f-bb180e7ca559"))
+            .setServiceUuid(ParcelUuid(BleKitScope.getServiceUuid()))
             .build()
         bleCentral.scanWithDuration(5000, mBleScanCallback, listOf(filter))
     }

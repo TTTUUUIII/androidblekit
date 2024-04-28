@@ -22,3 +22,5 @@ internal fun <T> T.runAtDelayed(mill: Long, action: Runnable) {
             action.run()
         }
 }
+
+internal fun ble16BitUuid(ost: String) = "0000$ost-0000-1000-8000-00805F9B34FB"

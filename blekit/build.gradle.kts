@@ -1,5 +1,3 @@
-import com.android.build.gradle.internal.scope.publishBuildArtifacts
-
 plugins {
     alias(libs.plugins.library)
     alias(libs.plugins.kotlin)
