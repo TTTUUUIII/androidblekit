@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+    <data>
+        <variable
+            name="viewModel"
+            type="com.outlook.wn123o.androidblekit.ui.BaseViewModel" />
+    </data>
+    
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:text="@{viewModel.rxMsgState}"/>
+        <LinearLayout
+            android:id="@+id/line2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <EditText
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:hint="@string/str_input_msg"
+                android:text="@={viewModel.txMsg}"
+                android:layout_height="wrap_content" />
+            <Button
+                android:id="@+id/send_msg_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cornerRadius = "5dp"
+                android:text="@string/str_send"/>
+        </LinearLayout>
+    </LinearLayout>
+</layout>

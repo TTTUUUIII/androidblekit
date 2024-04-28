@@ -1,0 +1,44 @@
+[versions]
+
+compileSdk = "34"
+targetSdk = "34"
+minSdk = "24"
+
+versionName = "1.0.0"
+
+# plugins
+
+application = "8.1.1"
+library = "8.1.1"
+kotlin = "1.9.0"
+
+# dependencies
+
+core-ktx = "1.9.0"
+android-appcompat = "1.6.1"
+android-material = "1.11.0"
+android-constraintlayout = "2.1.4"
+navigation = "2.7.7"
+
+test-junit = "4.13.2"
+test-ext = "1.1.5"
+test-espresso = "3.5.1"
+
+[libraries]
+
+core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
+android-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "android-appcompat" }
+android-material = { group = "com.google.android.material", name = "material", version.ref = "android-material" }
+android-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "android-constraintlayout" }
+navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigation" }
+navigation-ui = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigation" }
+
+test-junit = { group = "junit", name = "junit", version.ref = "test-junit" }
+test-ext = { group = "androidx.test.ext", name = "junit", version.ref = "test-ext" }
+test-espresso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "test-espresso" }
+
+[plugins]
+
+application = { id = "com.android.application", version.ref = "application" }
+library = { id = "com.android.library", version.ref = "library" }
+kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

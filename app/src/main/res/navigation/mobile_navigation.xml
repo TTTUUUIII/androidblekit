@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_nav">
+
+    <fragment
+        android:id="@+id/navigation_nav"
+        android:name="com.outlook.wn123o.androidblekit.ui.NavFragment"
+        android:label="@string/title_select"
+        tools:layout="@layout/fragment_nav" />
+
+    <fragment
+        android:id="@+id/navigation_scan"
+        android:name="com.outlook.wn123o.androidblekit.ui.BleScanFragment"
+        android:label="@string/title_scan_device"
+        tools:layout="@layout/fragment_ble_scan" />
+
+    <fragment
+        android:id="@+id/navigation_central"
+        android:name="com.outlook.wn123o.androidblekit.ui.BleCentralFragment"
+        android:label="@string/title_central"
+        tools:layout="@layout/fragment_ble_central" />
+
+    <fragment
+        android:id="@+id/navigation_peripheral"
+        android:name="com.outlook.wn123o.androidblekit.ui.BlePeripheralFragment"
+        android:label="@string/title_peripheral"
+        tools:layout="@layout/fragment_ble_peripheral" />
+</navigation>

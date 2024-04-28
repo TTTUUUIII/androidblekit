@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">AndroidBleKit</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_scan_device">搜索设备</string>
+    <string name="title_central">中心设备</string>
+    <string name="title_peripheral">外设设备</string>
+    <string name="title_select">选择</string>
+    <string name="str_scan">开始扫描</string>
+    <string name="str_advertise">开始广播</string>
+    <string name="str_connect">连接</string>
+    <string name="str_send">发送</string>
+    <string name="str_input_msg">输入消息</string>
+    <string name="str_send_failure">发送失败</string>
+</resources>
