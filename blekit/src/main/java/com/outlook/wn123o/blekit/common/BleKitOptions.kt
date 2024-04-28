@@ -4,8 +4,7 @@ import android.app.Application
 import android.bluetooth.le.AdvertiseSettings
 import android.bluetooth.le.ScanSettings
 
-data class BleKitOptions(
-    val app: Application,
+data class BleKitOptions @JvmOverloads constructor(
     var serviceUuid: String = ble16BitUuid("14FB"),
     var writableChaUuid: String = ble16BitUuid("14EB"),
     var notifyChaUuid: String = ble16BitUuid("14EC"),

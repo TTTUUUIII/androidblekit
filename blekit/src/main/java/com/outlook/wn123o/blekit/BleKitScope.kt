@@ -1,5 +1,6 @@
 package com.outlook.wn123o.blekit
 
+import android.app.Application
 import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.bluetooth.le.ScanSettings
@@ -8,8 +9,11 @@ import com.outlook.wn123o.blekit.common.BleKitOptions
 import java.util.UUID
 
 object BleKitScope {
-    fun initialize(options: BleKitOptions) {
-        Env.context = options.app
+
+    @JvmStatic
+    @JvmOverloads
+    fun initialize(ctx: Application, options: BleKitOptions = BleKitOptions()) {
+        Env.context = ctx
         Env.serviceUuid = UUID.fromString(options.serviceUuid)
         Env.writeChaUuid = UUID.fromString(options.writableChaUuid)
         Env.notifyChaUuid = UUID.fromString(options.notifyChaUuid)
@@ -31,5 +35,6 @@ object BleKitScope {
         Env.debug = options.debug
     }
 
+    @JvmStatic
     fun getServiceUuid() = Env.serviceUuid
 }
