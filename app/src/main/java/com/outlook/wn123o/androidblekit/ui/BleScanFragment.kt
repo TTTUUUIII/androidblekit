@@ -33,20 +33,7 @@ class BleScanFragment : Fragment() {
         ViewModelProvider(requireActivity())[MainActivityViewModel::class.java].getBleCentral()
     }
 
-    private val mBleScanCallback = object: BleScanCallback() {
-        override fun onScanResult(bleDevice: BleDevice) {
-            mDeviceList
-                .takeIf { dataSource ->
-                    !dataSource.contains(bleDevice)
-                }
-                ?.let { dataSource ->
-                    dataSource.add(bleDevice)
-                    mAdapter.notifyItemInserted(
-                        dataSource.size
-                    )
-                }
-        }
-    }
+    private val mBleScanCallback = BleScanCallbackImpl()
 
     private val mDeviceList = mutableListOf<BleDevice>()
     private val mAdapter = ItemDeviceViewAdapter(mDeviceList)
@@ -70,17 +57,12 @@ class BleScanFragment : Fragment() {
         binding.scanButton.setOnClickListener { startDiscovery() }
     }
 
-    override fun onStop() {
-        super.onStop()
-        mDeviceList.clear()
-        mAdapter.notifyDataSetChanged()
-    }
-
-    inner class ItemDeviceViewHolder(private val itemBinding: ItemDeviceViewBinding): ViewHolder(itemBinding.root) {
+    private inner class ItemDeviceViewHolder(private val itemBinding: ItemDeviceViewBinding): ViewHolder(itemBinding.root) {
         @SuppressLint("MissingPermission")
         fun bind(device: BleDevice) {
             itemBinding.addressTextView.text = device.bleAddress
             itemBinding.nameTextView.text = device.deviceName ?: "Unknown"
+            itemBinding.rssiTextView.text = "${device.rssi}"
             itemBinding.connectButton.setOnClickListener {
                 val arguments = Bundle()
                     .apply {
@@ -92,7 +74,7 @@ class BleScanFragment : Fragment() {
         }
     }
 
-    inner class ItemDeviceViewAdapter(private val dataSource: List<BleDevice>): Adapter<ItemDeviceViewHolder>() {
+    private inner class ItemDeviceViewAdapter(private val dataSource: List<BleDevice>): Adapter<ItemDeviceViewHolder>() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemDeviceViewHolder {
             return ItemDeviceViewHolder(
                 ItemDeviceViewBinding.inflate(
@@ -112,10 +94,34 @@ class BleScanFragment : Fragment() {
     }
 
     private fun startDiscovery() {
+        clearList()
         val filter = ScanFilter
             .Builder()
             .setServiceUuid(ParcelUuid(BleKitScope.getServiceUuid()))
             .build()
         bleCentral.scanWithDuration(5000, mBleScanCallback, listOf(filter))
+    }
+
+    private fun clearList() {
+        if (mDeviceList.isNotEmpty()) {
+            val count = mDeviceList.size
+            mDeviceList.clear()
+            mAdapter.notifyItemRangeRemoved(0, count)
+        }
+    }
+
+    private inner class BleScanCallbackImpl: BleScanCallback() {
+        override fun onScanResult(bleDevice: BleDevice) {
+            val indexOf = mDeviceList.indexOf(bleDevice)
+            if (indexOf != -1) {
+                mDeviceList[indexOf].rssi = bleDevice.rssi
+                mAdapter.notifyItemChanged(indexOf)
+            } else {
+                mDeviceList.add(bleDevice)
+                mAdapter.notifyItemInserted(
+                    mDeviceList.size
+                )
+            }
+        }
     }
 }

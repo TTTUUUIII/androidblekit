@@ -23,4 +23,6 @@ abstract class BleScanCallback: ScanCallback() {
 
     abstract fun onScanResult(bleDevice: BleDevice)
 
+    open fun onScanStart() {}
+    open fun onScanStop() {}
 }

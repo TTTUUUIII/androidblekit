@@ -40,17 +40,19 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
                 .bluetoothLeScanner
                 .startScan(filters, Env.scanSettings, callback)
             mScanning = true
+            callback.onScanStart()
         }
     }
 
     @SuppressLint("MissingPermission")
-    fun stopScan(callback: ScanCallback) {
+    fun stopScan(callback: BleScanCallback) {
         if (mScanning) {
             mBleManager
                 .adapter
                 .bluetoothLeScanner
                 .stopScan(callback)
             mScanning = false
+            callback.onScanStop()
         }
     }
 
