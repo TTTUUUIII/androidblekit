@@ -3,7 +3,7 @@ package com.outlook.wn123o.blekit.common
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.ScanRecord
 
-data class BleDevice(
+data class BleDevice (
     val bleAddress: String,
     var scanRecord: ScanRecord? = null,
     var deviceName: String? = "Unknown",

@@ -11,4 +11,6 @@ interface BleCentralApi: BleApi {
     fun scanWithDuration(mills: Long, callback: BleScanCallback)
     fun scanWithDuration(mills: Long, callback: BleScanCallback, filters: List<ScanFilter>?)
     fun setCentralCallback(callback: BleCentralCallback)
+
+    fun readRemoteRssi(bleAddress: String): Boolean
 }

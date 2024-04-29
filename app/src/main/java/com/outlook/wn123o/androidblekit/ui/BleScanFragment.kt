@@ -63,7 +63,8 @@ class BleScanFragment : Fragment() {
                 bleCentral.stopScan(mBleScanCallback)
                 val arguments = Bundle()
                     .apply {
-                        putParcelable(BleCentralFragment.KEY_PARAM_BLE_DEVICE, device.device)
+                        putParcelable(BleCentralFragment.KEY_ARG_BLE_DEVICE, device.device)
+                        putInt(BleCentralFragment.KEY_ARG_BLE_RSSI, device.rssi)
                     }
                 findNavController()
                     .navigate(R.id.navigation_central, arguments)

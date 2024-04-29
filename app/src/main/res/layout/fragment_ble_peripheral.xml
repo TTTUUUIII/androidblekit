@@ -17,10 +17,17 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
             <TextView
+                android:paddingVertical="8dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textStyle="bold"
-                android:text="@{`状态：` + viewModel.connectState}" />
+                android:text="@{ @string/str_status + viewModel.connectState}" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="8dp"
+                android:textStyle="bold"
+                android:text="@{ @string/str_le_address + viewModel.remoteAddressState }"/>
         </LinearLayout>
         <FrameLayout
             android:id="@+id/message_window"

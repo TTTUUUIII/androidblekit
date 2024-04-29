@@ -118,7 +118,7 @@ class BleGattCallbackImpl(mCtx: Context, private val mRemote: BluetoothDevice, p
         status: Int,
         value: ByteArray
     ) {
-        super.onDescriptorRead(gatt, descriptor, status, value)
+        debug("onDescriptorRead: { status=$status }")
     }
 
     override fun onDescriptorWrite(
@@ -126,15 +126,17 @@ class BleGattCallbackImpl(mCtx: Context, private val mRemote: BluetoothDevice, p
         descriptor: BluetoothGattDescriptor?,
         status: Int
     ) {
-        super.onDescriptorWrite(gatt, descriptor, status)
+        debug("onDescriptorWrite: { status=$status }")
     }
 
     override fun onReliableWriteCompleted(gatt: BluetoothGatt?, status: Int) {
-        super.onReliableWriteCompleted(gatt, status)
+        debug("onReliableWriteCompleted: { status=$status }")
     }
 
     override fun onReadRemoteRssi(gatt: BluetoothGatt?, rssi: Int, status: Int) {
-        super.onReadRemoteRssi(gatt, rssi, status)
+        if (status == BluetoothGatt.GATT_SUCCESS) {
+            mCallback.onReadRemoteRssi(gatt!!.device.address, rssi)
+        }
     }
 
     override fun onMtuChanged(gatt: BluetoothGatt?, mtu: Int, status: Int) {
@@ -169,5 +171,9 @@ class BleGattCallbackImpl(mCtx: Context, private val mRemote: BluetoothDevice, p
             }
         }
         return mBluetoothGatt != null && mWriteCharacteristic != null
+    }
+
+    fun readRemoteRssi() {
+        mBluetoothGatt?.readRemoteRssi()
     }
 }

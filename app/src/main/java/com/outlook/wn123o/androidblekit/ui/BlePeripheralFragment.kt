@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.outlook.wn123o.androidblekit.MainActivityViewModel
 import com.outlook.wn123o.androidblekit.R
 import com.outlook.wn123o.androidblekit.common.runOnUiThread
+import com.outlook.wn123o.androidblekit.common.timeZone
 import com.outlook.wn123o.androidblekit.common.toast
 import com.outlook.wn123o.androidblekit.databinding.FragmentBlePeripheralBinding
 import com.outlook.wn123o.androidblekit.databinding.MessageWindowViewBinding
@@ -61,17 +62,19 @@ class BlePeripheralFragment : Fragment(), BlePeripheralCallback {
     }
 
     override fun onMessage(bleAddress: String, bytes: ByteArray, offset: Int) {
-        mViewModel.putMsg("$bleAddress: ${String(bytes)}")
+        mViewModel.putMsg("${timeZone()}: ${String(bytes)}")
     }
 
     override fun onConnected(bleAddress: String) {
-        mViewModel.updateConnectState("已连接")
+        mViewModel.updateConnectState(getString(R.string.str_connected))
+        mViewModel.updateRemoteAddressState(bleAddress)
         mBleAddress = bleAddress
         mConnected = true
     }
 
     override fun onDisconnected(bleAddress: String) {
-        mViewModel.updateConnectState("未连接")
+        mViewModel.updateConnectState(getString(R.string.str_disconnected))
+        mViewModel.updateRemoteAddressState("")
         mConnected = false
         startAdvertising()
         runOnUiThread {

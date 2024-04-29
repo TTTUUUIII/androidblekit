@@ -82,6 +82,10 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
         mExternCallback?.onReadyToWrite(bleAddress)
     }
 
+    override fun onReadRemoteRssi(bleAddress: String, rssi: Int) {
+        mExternCallback?.onReadRemoteRssi(bleAddress, rssi)
+    }
+
     override fun onError(error: Int) {
         mExternCallback?.onError(error)
     }
@@ -104,6 +108,14 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
 
     override fun setCentralCallback(callback: BleCentralCallback) {
         mExternCallback = callback
+    }
+
+    override fun readRemoteRssi(bleAddress: String): Boolean {
+        mConnections[bleAddress]?.let {
+            it.readRemoteRssi()
+            return true
+        }
+        return false
     }
 
     companion object {

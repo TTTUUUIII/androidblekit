@@ -13,4 +13,13 @@ class BleCentralFragmentViewModel: BaseViewModel() {
             newState
         }
     }
+
+    private var _remoteRssiState = MutableStateFlow(0)
+    val remoteRssiState = _remoteRssiState.asStateFlow()
+
+    fun updateRemoteRssiState(newState: Int) {
+        _remoteRssiState.update {
+            newState
+        }
+    }
 }
