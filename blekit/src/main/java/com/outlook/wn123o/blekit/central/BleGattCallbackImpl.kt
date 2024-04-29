@@ -15,7 +15,7 @@ import com.outlook.wn123o.blekit.interfaces.BleCentralCallback
 import java.io.Closeable
 
 @SuppressLint("MissingPermission")
-class BleGattCallbackImpl(mCtx: Context, private val mRemote: BluetoothDevice, private val mCallback: BleCentralCallback): BluetoothGattCallback(), Closeable {
+internal class BleGattCallbackImpl(mCtx: Context, private val mRemote: BluetoothDevice, private val mCallback: BleCentralCallback): BluetoothGattCallback(), Closeable {
 
     private var mBluetoothGatt: BluetoothGatt? = null
     private var mWriteCharacteristic: BluetoothGattCharacteristic? = null

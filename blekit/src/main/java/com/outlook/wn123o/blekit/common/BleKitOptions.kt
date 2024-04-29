@@ -1,6 +1,5 @@
 package com.outlook.wn123o.blekit.common
 
-import android.app.Application
 import android.bluetooth.le.AdvertiseSettings
 import android.bluetooth.le.ScanSettings
 import android.util.Log
