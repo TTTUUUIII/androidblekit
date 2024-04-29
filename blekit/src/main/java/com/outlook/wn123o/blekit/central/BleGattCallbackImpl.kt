@@ -10,15 +10,16 @@ import android.content.Context
 import android.os.Build
 import com.outlook.wn123o.blekit.Env
 import com.outlook.wn123o.blekit.common.debug
+import com.outlook.wn123o.blekit.common.error
 import com.outlook.wn123o.blekit.interfaces.BleCentralCallback
 import java.io.Closeable
 
 @SuppressLint("MissingPermission")
-class BleGattCallbackImpl(private val mCtx: Context, private val mRemote: BluetoothDevice, private val mCallback: BleCentralCallback): BluetoothGattCallback(), Closeable {
+class BleGattCallbackImpl(mCtx: Context, private val mRemote: BluetoothDevice, private val mCallback: BleCentralCallback): BluetoothGattCallback(), Closeable {
 
-    private var mGatt: BluetoothGatt? = null
-    private lateinit var mWriteCharacteristic: BluetoothGattCharacteristic
-    private lateinit var mNotifyCharacteristic: BluetoothGattCharacteristic
+    private var mBluetoothGatt: BluetoothGatt? = null
+    private var mWriteCharacteristic: BluetoothGattCharacteristic? = null
+    private var mNotifyCharacteristic: BluetoothGattCharacteristic? = null
 
     init {
         mRemote.connectGatt(mCtx, false, this)
@@ -38,14 +39,14 @@ class BleGattCallbackImpl(private val mCtx: Context, private val mRemote: Blueto
         when(newState) {
             BluetoothGatt.STATE_CONNECTED -> {
                 gatt?.let {
-                    mGatt = gatt
+                    mBluetoothGatt = gatt
                     mCallback.onConnected(mRemote.address)
                     it.requestMtu(Env.expectMtuSize)
                 }
             }
             BluetoothGatt.STATE_DISCONNECTED -> {
                 mCallback.onDisconnected(mRemote.address)
-                mGatt = null
+                mBluetoothGatt = null
             }
             else -> {}
         }
@@ -54,21 +55,33 @@ class BleGattCallbackImpl(private val mCtx: Context, private val mRemote: Blueto
     override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
         gatt?.let { bluetoothGatt ->
             val gattService = bluetoothGatt.getService(Env.serviceUuid)
+            val bleAddress = bluetoothGatt.device.address
             if (gattService != null) {
                 mNotifyCharacteristic = gattService.getCharacteristic(Env.notifyChaUuid)
-                bluetoothGatt.setCharacteristicNotification(mNotifyCharacteristic, true)
-                mNotifyCharacteristic.getDescriptor(Env.clientChaConfigUuid)
-                    ?.let { descriptor ->
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            bluetoothGatt.writeDescriptor(descriptor, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
-                        } else {
-                            descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                            bluetoothGatt.writeDescriptor(descriptor)
+                if (mNotifyCharacteristic != null) {
+                    bluetoothGatt.setCharacteristicNotification(mNotifyCharacteristic, true)
+                    mNotifyCharacteristic!!.getDescriptor(Env.clientChaConfigUuid)
+                        ?.let { descriptor ->
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                bluetoothGatt.writeDescriptor(descriptor, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
+                            } else {
+                                descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                                bluetoothGatt.writeDescriptor(descriptor)
+                            }
                         }
-                    }
+                } else {
+                    mCallback.onError(BleCentral.ERR_NOTIFY_CHARACTERISTIC_NOT_FOUND)
+                    error("Notify characteristic not found! { address= ${bleAddress}, service=${Env.notifyChaUuid} }")
+                }
                 mWriteCharacteristic = gattService.getCharacteristic(Env.writeChaUuid)
+                if (mWriteCharacteristic != null) {
+                    mCallback.onReadyToWrite(bleAddress)
+                } else {
+                    mCallback.onError(BleCentral.ERR_WRITE_CHARACTERISTIC_NOT_FOUND)
+                    error("Write characteristic not found! { address= ${bleAddress}, service=${Env.writeChaUuid} }")
+                }
             } else {
-                error("Unable find gatt service: ${Env.serviceUuid}")
+                error("BluetoothGatt service not found! { address= ${bleAddress}, service=${Env.serviceUuid} }")
             }
         }
     }
@@ -79,7 +92,7 @@ class BleGattCallbackImpl(private val mCtx: Context, private val mRemote: Blueto
         value: ByteArray,
         status: Int
     ) {
-        debug("onCharacteristicRead { status=$status }")
+        debug("onCharacteristicRead: { status=$status }")
     }
 
     override fun onCharacteristicWrite(
@@ -87,7 +100,7 @@ class BleGattCallbackImpl(private val mCtx: Context, private val mRemote: Blueto
         characteristic: BluetoothGattCharacteristic?,
         status: Int
     ) {
-        debug("onCharacteristicWrite")
+        debug("onCharacteristicWrite: { status=$status }")
     }
 
     override fun onCharacteristicChanged(
@@ -133,26 +146,28 @@ class BleGattCallbackImpl(private val mCtx: Context, private val mRemote: Blueto
 
     @SuppressLint("MissingPermission")
     override fun close() {
-        mGatt?.let {  gatt ->
+        mBluetoothGatt?.let {  gatt ->
             gatt.disconnect()
             gatt.close()
         }
     }
 
-    fun send(bytes: ByteArray): Boolean {
-        mGatt?.let {  gatt ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                gatt.writeCharacteristic(
-                    mWriteCharacteristic,
-                    bytes,
-                    BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-                )
-            } else {
-                mWriteCharacteristic.value = bytes
-                mWriteCharacteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-                gatt.writeCharacteristic(mWriteCharacteristic)
+    fun writeBytes(bytes: ByteArray): Boolean {
+        mBluetoothGatt?.let {  gatt ->
+            mWriteCharacteristic?.let { characteristic ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    gatt.writeCharacteristic(
+                        characteristic,
+                        bytes,
+                        BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                    )
+                } else {
+                    characteristic.value = bytes
+                    characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                    gatt.writeCharacteristic(characteristic)
+                }
             }
         }
-        return mGatt != null
+        return mBluetoothGatt != null && mWriteCharacteristic != null
     }
 }

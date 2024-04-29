@@ -10,5 +10,10 @@ fun Fragment.toast(msg: String) {
 }
 
 fun Fragment.toast(@StringRes id: Int) {
-    Toast.makeText(requireContext(), getString(id), Toast.LENGTH_SHORT).show()
+    toast(getString(id))
+}
+
+fun Fragment.runOnUiThread(action: Runnable) {
+    requireActivity()
+        .runOnUiThread(action)
 }

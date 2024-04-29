@@ -177,7 +177,7 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
     }
 
     @SuppressLint("MissingPermission")
-    fun send(bleAddress: String, bytes: ByteArray): Boolean {
+    fun writeBytes(bleAddress: String, bytes: ByteArray): Boolean {
         mConnections[bleAddress]
             ?.let { device ->
                 val characteristic = mNotifyCharacteristic

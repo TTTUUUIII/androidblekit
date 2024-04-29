@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
 import com.outlook.wn123o.androidblekit.MainActivityViewModel
 import com.outlook.wn123o.androidblekit.R
+import com.outlook.wn123o.androidblekit.common.runOnUiThread
 import com.outlook.wn123o.androidblekit.common.toast
 import com.outlook.wn123o.androidblekit.databinding.FragmentBlePeripheralBinding
 import com.outlook.wn123o.androidblekit.databinding.MessageWindowViewBinding
@@ -52,7 +53,7 @@ class BlePeripheralFragment : Fragment(), BlePeripheralCallback {
     private fun setupActions() {
         messageBinding.sendMsgButton.setOnClickListener {
             if (mViewModel.txMsg.isNotEmpty() && mConnected) {
-                blePeripheral.send(mBleAddress!!, mViewModel.txMsg.encodeToByteArray())
+                blePeripheral.writeBytes(mBleAddress!!, mViewModel.txMsg.encodeToByteArray())
             } else {
                 toast(R.string.str_send_failure)
             }
@@ -73,6 +74,9 @@ class BlePeripheralFragment : Fragment(), BlePeripheralCallback {
         mViewModel.updateConnectState("未连接")
         mConnected = false
         startAdvertising()
+        runOnUiThread {
+            toast(R.string.str_connection_lost)
+        }
     }
 
     private fun startAdvertising() {

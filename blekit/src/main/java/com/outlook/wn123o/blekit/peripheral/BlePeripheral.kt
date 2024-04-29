@@ -1,7 +1,6 @@
 package com.outlook.wn123o.blekit.peripheral
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattServer
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothManager
@@ -9,9 +8,7 @@ import android.bluetooth.le.AdvertiseCallback
 import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
-import android.os.Build
 import com.outlook.wn123o.blekit.Env
-import com.outlook.wn123o.blekit.common.debug
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralApi
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralCallback
 
@@ -59,8 +56,8 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
         return service
     }
 
-    override fun send(bleAddress: String, bytes: ByteArray): Boolean {
-        return mGattCallback.send(bleAddress, bytes)
+    override fun writeBytes(bleAddress: String, bytes: ByteArray): Boolean {
+        return mGattCallback.writeBytes(bleAddress, bytes)
     }
 
     override fun startup() = startup(null)

@@ -78,6 +78,14 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
         mExternCallback?.onMtuChanged(bleAddress, mtu)
     }
 
+    override fun onReadyToWrite(bleAddress: String) {
+        mExternCallback?.onReadyToWrite(bleAddress)
+    }
+
+    override fun onError(error: Int) {
+        mExternCallback?.onError(error)
+    }
+
     @SuppressLint("MissingPermission")
     override fun disconnect(bleAddress: String) {
         mConnections
@@ -85,10 +93,10 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
             ?.close()
     }
 
-    override fun send(bleAddress: String, bytes: ByteArray): Boolean {
+    override fun writeBytes(bleAddress: String, bytes: ByteArray): Boolean {
         mConnections[bleAddress]
             ?.also {
-                it.send(bytes)
+                it.writeBytes(bytes)
                 return true
             }
         return false
@@ -96,5 +104,10 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
 
     override fun setCentralCallback(callback: BleCentralCallback) {
         mExternCallback = callback
+    }
+
+    companion object {
+        const val ERR_WRITE_CHARACTERISTIC_NOT_FOUND = -1
+        const val ERR_NOTIFY_CHARACTERISTIC_NOT_FOUND = -2
     }
 }

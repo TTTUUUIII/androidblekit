@@ -8,8 +8,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.outlook.wn123o.androidblekit.MainActivityViewModel
 import com.outlook.wn123o.androidblekit.R
+import com.outlook.wn123o.androidblekit.common.runOnUiThread
 import com.outlook.wn123o.androidblekit.common.toast
 import com.outlook.wn123o.androidblekit.databinding.FragmentBleCentralBinding
 import com.outlook.wn123o.androidblekit.databinding.MessageWindowViewBinding
@@ -67,7 +69,7 @@ class BleCentralFragment : Fragment(), BleCentralCallback {
     private fun setupActions() {
         messageBinding.sendMsgButton.setOnClickListener {
             if (mViewModel.txMsg.isNotEmpty() && mConnected) {
-                bleCentral.send(mBluetoothDevice!!.address, mViewModel.txMsg.encodeToByteArray())
+                bleCentral.writeBytes(mBluetoothDevice!!.address, mViewModel.txMsg.encodeToByteArray())
             } else {
                 toast(R.string.str_send_failure)
             }
@@ -85,7 +87,12 @@ class BleCentralFragment : Fragment(), BleCentralCallback {
 
     override fun onDisconnected(bleAddress: String) {
         mViewModel.updateConnectState("未连接")
+        mBluetoothDevice = null
         mConnected = false
+        runOnUiThread {
+            toast(R.string.str_connection_lost)
+            findNavController().popBackStack()
+        }
     }
 
     override fun onDestroy() {

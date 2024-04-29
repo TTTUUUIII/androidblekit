@@ -9,13 +9,21 @@ import java.util.concurrent.Executors
 private val mExecutor = Executors.newSingleThreadExecutor()
 
 internal fun <T> T.debug(msg: String) {
-    if (Env.debug) {
+    if (Env.logLevel <= Log.DEBUG) {
         Log.d(LOG_TAG, "[DEBUG] $msg")
     }
 }
 
+internal fun <T> T.error(msg: String) {
+    if (Env.logLevel <= Log.ERROR) {
+        Log.e(LOG_TAG, "[ERROR] $msg")
+    }
+}
+
 internal fun <T> T.message(msg: String) {
-    Log.i(LOG_TAG, "[INFO] $msg")
+    if (Env.logLevel <= Log.INFO) {
+        Log.i(LOG_TAG, "[INFO] $msg")
+    }
 }
 
 internal fun <T> T.runAtDelayed(mill: Long, action: Runnable) {

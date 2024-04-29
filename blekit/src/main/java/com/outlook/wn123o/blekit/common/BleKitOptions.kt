@@ -3,6 +3,7 @@ package com.outlook.wn123o.blekit.common
 import android.app.Application
 import android.bluetooth.le.AdvertiseSettings
 import android.bluetooth.le.ScanSettings
+import android.util.Log
 
 data class BleKitOptions @JvmOverloads constructor(
     var serviceUuid: String = ble16BitUuid("14FB"),
@@ -11,5 +12,5 @@ data class BleKitOptions @JvmOverloads constructor(
     var leScanMode: Int = ScanSettings.SCAN_MODE_LOW_POWER,
     var leAdvertiseMode: Int = AdvertiseSettings.ADVERTISE_MODE_LOW_POWER,
     var expectMtuSize: Int = 185,
-    var debug: Boolean = false
+    var logLevel: Int = Log.ERROR
 )

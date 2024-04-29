@@ -46,6 +46,7 @@ class BleScanFragment : Fragment() {
         binding.recyclerView.layoutManager = LinearLayoutManager(view.context)
         binding.recyclerView.adapter = mAdapter
         setupActions()
+        clearList()
     }
 
     private fun setupActions() {

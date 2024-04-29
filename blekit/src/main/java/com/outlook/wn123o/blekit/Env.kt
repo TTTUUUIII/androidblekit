@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.bluetooth.le.ScanSettings
+import android.util.Log
 import java.util.UUID
 
 internal object Env {
@@ -17,7 +18,7 @@ internal object Env {
     lateinit var scanSettings: ScanSettings
     lateinit var advertiseData: AdvertiseData
 
-    var debug = false
+    var logLevel = Log.ERROR
 
     var expectMtuSize = 185
 

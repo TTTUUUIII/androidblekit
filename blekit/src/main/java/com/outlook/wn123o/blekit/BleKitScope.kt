@@ -32,7 +32,7 @@ object BleKitScope {
             )
             .build()
         Env.expectMtuSize = options.expectMtuSize
-        Env.debug = options.debug
+        Env.logLevel = options.logLevel
     }
 
     @JvmStatic
