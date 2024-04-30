@@ -14,9 +14,9 @@ object BleKitScope {
     @JvmOverloads
     fun initialize(ctx: Application, options: BleKitOptions = BleKitOptions()) {
         Env.context = ctx
-        Env.serviceUuid = UUID.fromString(options.serviceUuid)
-        Env.writeChaUuid = UUID.fromString(options.writableChaUuid)
-        Env.notifyChaUuid = UUID.fromString(options.notifyChaUuid)
+        Env.preferenceServiceUuid = UUID.fromString(options.preferenceServiceUuid)
+        Env.preferenceWriteChaUuid = UUID.fromString(options.preferenceWritableChaUuid)
+        Env.preferenceNotifyChaUuid = UUID.fromString(options.preferenceNotifyChaUuid)
         Env.advertiseSettings = AdvertiseSettings
             .Builder()
             .setConnectable(true)
@@ -28,7 +28,7 @@ object BleKitScope {
             .build()
         Env.advertiseData = AdvertiseData.Builder()
             .addServiceUuid(
-                ParcelUuid(Env.serviceUuid)
+                ParcelUuid(Env.preferenceServiceUuid)
             )
             .build()
         Env.expectMtuSize = options.expectMtuSize
@@ -36,5 +36,5 @@ object BleKitScope {
     }
 
     @JvmStatic
-    fun getServiceUuid() = Env.serviceUuid
+    fun getServiceUuid() = Env.preferenceServiceUuid
 }

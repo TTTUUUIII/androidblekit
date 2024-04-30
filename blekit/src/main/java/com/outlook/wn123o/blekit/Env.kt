@@ -28,7 +28,7 @@ internal object Env {
         BluetoothGattDescriptor.PERMISSION_READ
                 or BluetoothGattDescriptor.PERMISSION_WRITE
     )
-    lateinit var serviceUuid: UUID
-    lateinit var notifyChaUuid: UUID
-    lateinit var writeChaUuid: UUID
+    lateinit var preferenceServiceUuid: UUID
+    lateinit var preferenceNotifyChaUuid: UUID
+    lateinit var preferenceWriteChaUuid: UUID
 }

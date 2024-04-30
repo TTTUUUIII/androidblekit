@@ -21,9 +21,10 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
     lateinit var callback: BlePeripheralCallback
 
     private val mWriteCharacteristic = BluetoothGattCharacteristic(
-        Env.writeChaUuid,
+        Env.preferenceWriteChaUuid,
         BluetoothGattCharacteristic.PROPERTY_WRITE
-                or BluetoothGattCharacteristic.PROPERTY_READ,
+                or BluetoothGattCharacteristic.PROPERTY_READ
+                or BluetoothGattCharacteristic.PROPERTY_INDICATE,
         BluetoothGattCharacteristic.PERMISSION_READ
                 or BluetoothGattCharacteristic.PERMISSION_WRITE
     ).apply {
@@ -31,10 +32,9 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
     }
 
     private val mNotifyCharacteristic = BluetoothGattCharacteristic(
-        Env.notifyChaUuid,
+        Env.preferenceNotifyChaUuid,
         BluetoothGattCharacteristic.PROPERTY_READ
-                or BluetoothGattCharacteristic.PROPERTY_NOTIFY
-                or BluetoothGattCharacteristic.PROPERTY_INDICATE,
+                or BluetoothGattCharacteristic.PROPERTY_NOTIFY,
         BluetoothGattCharacteristic.PERMISSION_READ
     )
 

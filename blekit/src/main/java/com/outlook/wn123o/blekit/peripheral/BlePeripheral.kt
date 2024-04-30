@@ -35,7 +35,7 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
         super.onStartSuccess(settingsInEffect)
         mAdvertising = true
         val service = mGattServer
-            .getService(Env.serviceUuid)
+            .getService(Env.preferenceServiceUuid)
         if (service == null) {
             mGattServer.addService(mGattService)
         }
@@ -48,7 +48,7 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
 
     private fun getGattService(): BluetoothGattService {
         val service = BluetoothGattService(
-            Env.serviceUuid,
+            Env.preferenceServiceUuid,
             BluetoothGattService.SERVICE_TYPE_PRIMARY
         )
         service.addCharacteristic(mGattCallback.getWritableCharacteristic())
