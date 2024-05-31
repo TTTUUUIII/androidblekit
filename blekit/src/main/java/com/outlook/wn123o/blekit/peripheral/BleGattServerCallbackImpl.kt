@@ -23,20 +23,20 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
     private val mWriteCharacteristic = BluetoothGattCharacteristic(
         Env.preferenceWriteChaUuid,
         BluetoothGattCharacteristic.PROPERTY_WRITE
-                or BluetoothGattCharacteristic.PROPERTY_READ
-                or BluetoothGattCharacteristic.PROPERTY_INDICATE,
-        BluetoothGattCharacteristic.PERMISSION_READ
-                or BluetoothGattCharacteristic.PERMISSION_WRITE
-    ).apply {
-        addDescriptor(Env.clientChaDescriptor)
-    }
+               /* or BluetoothGattCharacteristic.PROPERTY_READ
+                or BluetoothGattCharacteristic.PROPERTY_INDICATE*/,
+        /*BluetoothGattCharacteristic.PERMISSION_READ
+                or*/ BluetoothGattCharacteristic.PERMISSION_WRITE
+    )
 
     private val mNotifyCharacteristic = BluetoothGattCharacteristic(
         Env.preferenceNotifyChaUuid,
         BluetoothGattCharacteristic.PROPERTY_READ
                 or BluetoothGattCharacteristic.PROPERTY_NOTIFY,
         BluetoothGattCharacteristic.PERMISSION_READ
-    )
+    ).apply {
+        addDescriptor(Env.clientChaDescriptor)
+    }
 
     private val mConnections = mutableMapOf<String, BluetoothDevice>()
 
