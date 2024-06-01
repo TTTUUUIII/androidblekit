@@ -1,40 +1,53 @@
 package com.outlook.wn123o.androidblekit.ui
 
 import android.annotation.SuppressLint
-import android.bluetooth.le.ScanFilter
 import android.os.Bundle
-import android.os.ParcelUuid
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.Adapter
+import androidx.recyclerview.widget.RecyclerView.LayoutParams
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
-import com.outlook.wn123o.androidblekit.MainActivityViewModel
 import com.outlook.wn123o.androidblekit.R
 import com.outlook.wn123o.androidblekit.databinding.FragmentBleScanBinding
 import com.outlook.wn123o.androidblekit.databinding.ItemDeviceViewBinding
-import com.outlook.wn123o.blekit.BleKitScope
-import com.outlook.wn123o.blekit.central.BleScanCallback
 import com.outlook.wn123o.blekit.common.BleDevice
+import java.util.regex.Pattern
+import java.util.regex.PatternSyntaxException
 
 class BleScanFragment : Fragment() {
 
     private val binding by lazy {
         FragmentBleScanBinding.inflate(layoutInflater)
+            .apply {
+                viewModel = mViewModel
+            }
     }
 
-    private val bleCentral by lazy {
-        ViewModelProvider(requireActivity())[MainActivityViewModel::class.java].getBleCentral()
+    private val mViewModel by lazy {
+        ViewModelProvider(this)[BleScanFragmentViewModel::class.java]
     }
-
-    private val mBleScanCallback = BleScanCallbackImpl()
 
     private val mDeviceList = mutableListOf<BleDevice>()
     private val mAdapter = ItemDeviceViewAdapter(mDeviceList)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        mViewModel.scanResultLiveData.observe(this) {
+            it?.let { bleDevice ->
+                onNewDevice(bleDevice)
+            }
+        }
+
+        mViewModel.deviceNamePatternLiveData.observe(this) {
+            mAdapter.notifyItemRangeChanged(0, mDeviceList.size)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,22 +58,15 @@ class BleScanFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.recyclerView.layoutManager = LinearLayoutManager(view.context)
         binding.recyclerView.adapter = mAdapter
-        setupActions()
         clearList()
-    }
-
-    private fun setupActions() {
-        binding.scanButton.setOnClickListener { startDiscovery() }
     }
 
     private inner class ItemDeviceViewHolder(private val itemBinding: ItemDeviceViewBinding): ViewHolder(itemBinding.root) {
         @SuppressLint("MissingPermission")
         fun bind(device: BleDevice) {
-            itemBinding.addressTextView.text = device.bleAddress
-            itemBinding.nameTextView.text = device.deviceName ?: "Unknown"
-            itemBinding.rssiTextView.text = "${device.rssi}"
+            itemBinding.bleDevice = device
             itemBinding.connectButton.setOnClickListener {
-                bleCentral.stopScan(mBleScanCallback)
+                mViewModel.stopDiscover()
                 val arguments = Bundle()
                     .apply {
                         putParcelable(BleCentralFragment.KEY_ARG_BLE_DEVICE, device.device)
@@ -68,6 +74,23 @@ class BleScanFragment : Fragment() {
                     }
                 findNavController()
                     .navigate(R.id.navigation_central, arguments)
+            }
+            if (shouldDisplay(device)) {
+                show()
+            } else {
+                hide()
+            }
+        }
+
+        private fun hide() {
+            itemBinding.root.updateLayoutParams<ViewGroup.LayoutParams> {
+                height = 0
+            }
+        }
+
+        private fun show() {
+            itemBinding.root.updateLayoutParams<ViewGroup.LayoutParams> {
+                height = LayoutParams.WRAP_CONTENT
             }
         }
     }
@@ -91,15 +114,6 @@ class BleScanFragment : Fragment() {
 
     }
 
-    private fun startDiscovery() {
-        clearList()
-        val filter = ScanFilter
-            .Builder()
-            .setServiceUuid(ParcelUuid(BleKitScope.getServiceUuid()))
-            .build()
-        bleCentral.scanWithDuration(5000, mBleScanCallback, listOf(filter))
-    }
-
     private fun clearList() {
         if (mDeviceList.isNotEmpty()) {
             val count = mDeviceList.size
@@ -108,18 +122,26 @@ class BleScanFragment : Fragment() {
         }
     }
 
-    private inner class BleScanCallbackImpl: BleScanCallback() {
-        override fun onScanResult(bleDevice: BleDevice) {
-            val indexOf = mDeviceList.indexOf(bleDevice)
-            if (indexOf != -1) {
-                mDeviceList[indexOf].rssi = bleDevice.rssi
-                mAdapter.notifyItemChanged(indexOf)
-            } else {
-                mDeviceList.add(bleDevice)
-                mAdapter.notifyItemInserted(
-                    mDeviceList.size
-                )
-            }
+    private fun shouldDisplay(device: BleDevice): Boolean {
+        try {
+            val pattern = mViewModel.deviceNamePatternLiveData.value ?: ".*.*"
+            if (pattern.isEmpty()) return true
+            val deviceName = device.deviceName ?: ""
+            return Pattern.matches(pattern, deviceName)
+        } catch (ignored: PatternSyntaxException) { }
+        return true
+    }
+
+    private fun onNewDevice(bleDevice: BleDevice) {
+        val indexOf = mDeviceList.indexOf(bleDevice)
+        if (indexOf != -1) {
+            mDeviceList[indexOf].rssi = bleDevice.rssi
+            mAdapter.notifyItemChanged(indexOf)
+        } else {
+            mDeviceList.add(bleDevice)
+            mAdapter.notifyItemInserted(
+                mDeviceList.size
+            )
         }
     }
 }

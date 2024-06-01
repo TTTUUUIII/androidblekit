@@ -9,7 +9,7 @@ import android.bluetooth.BluetoothGattServer
 import android.bluetooth.BluetoothGattServerCallback
 import android.bluetooth.BluetoothGattService
 import android.os.Build
-import com.outlook.wn123o.blekit.Env
+import com.outlook.wn123o.blekit.BleEnv
 import com.outlook.wn123o.blekit.common.debug
 import com.outlook.wn123o.blekit.common.message
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralCallback
@@ -21,7 +21,7 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
     lateinit var callback: BlePeripheralCallback
 
     private val mWriteCharacteristic = BluetoothGattCharacteristic(
-        Env.preferenceWriteChaUuid,
+        BleEnv.preferenceWriteChaUuid,
         BluetoothGattCharacteristic.PROPERTY_WRITE
                /* or BluetoothGattCharacteristic.PROPERTY_READ
                 or BluetoothGattCharacteristic.PROPERTY_INDICATE*/,
@@ -30,12 +30,12 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
     )
 
     private val mNotifyCharacteristic = BluetoothGattCharacteristic(
-        Env.preferenceNotifyChaUuid,
+        BleEnv.preferenceNotifyChaUuid,
         BluetoothGattCharacteristic.PROPERTY_READ
                 or BluetoothGattCharacteristic.PROPERTY_NOTIFY,
         BluetoothGattCharacteristic.PERMISSION_READ
     ).apply {
-        addDescriptor(Env.clientChaDescriptor)
+        addDescriptor(BleEnv.clientChaDescriptor)
     }
 
     private val mConnections = mutableMapOf<String, BluetoothDevice>()
@@ -47,7 +47,7 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
             BluetoothGatt.STATE_CONNECTED -> {
                 device?.let { bluetoothDevice ->
                     mConnections[bluetoothDevice.address] = bluetoothDevice
-                    gattServer.connect(bluetoothDevice, false)
+                    gattServer.connect(bluetoothDevice, true)
                     callback.onConnected(bluetoothDevice.address)
                 }
             }

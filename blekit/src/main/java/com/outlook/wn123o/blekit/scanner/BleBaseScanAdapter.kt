@@ -1,11 +1,11 @@
-package com.outlook.wn123o.blekit.central
+package com.outlook.wn123o.blekit.scanner
 
 import android.annotation.SuppressLint
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import com.outlook.wn123o.blekit.common.BleDevice
 
-abstract class BleScanCallback: ScanCallback() {
+abstract class BleBaseScanAdapter: ScanCallback() {
     @SuppressLint("MissingPermission")
     override fun onScanResult(callbackType: Int, result: ScanResult?) {
         result?.let { scanResult ->

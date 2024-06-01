@@ -9,7 +9,7 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.content.Context
 import android.os.Build
-import com.outlook.wn123o.blekit.Env
+import com.outlook.wn123o.blekit.BleEnv
 import com.outlook.wn123o.blekit.common.debug
 import com.outlook.wn123o.blekit.common.error
 import com.outlook.wn123o.blekit.common.findCharacteristic
@@ -49,7 +49,8 @@ internal class BleGattCallbackImpl(
                 gatt?.let {
                     mBluetoothGatt = gatt
                     mCallback.onConnected(mRemote.address)
-                    it.requestMtu(Env.expectMtuSize)
+                    it.discoverServices()
+                    it.requestMtu(BleEnv.expectMtuSize)
                 }
             }
 
@@ -72,7 +73,7 @@ internal class BleGattCallbackImpl(
                     ?.also { characteristic ->
                         message("Notify type characteristic: { uuid=${characteristic.uuid} }")
                         bluetoothGatt.setCharacteristicNotification(characteristic, true)
-                        characteristic.getDescriptor(Env.clientChaConfigUuid)
+                        characteristic.getDescriptor(BleEnv.clientChaConfigUuid)
                             ?.let { descriptor ->
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                                     bluetoothGatt.writeDescriptor(
@@ -92,7 +93,7 @@ internal class BleGattCallbackImpl(
                         mCallback.onReadyToWrite(bleAddress)
                     }
             } else {
-                error("Gatt service not found: { uuid=${Env.preferenceServiceUuid} }")
+                error("Gatt service not found: { uuid=${BleEnv.preferenceServiceUuid} }")
             }
         }
     }
@@ -151,7 +152,6 @@ internal class BleGattCallbackImpl(
     }
 
     override fun onMtuChanged(gatt: BluetoothGatt?, mtu: Int, status: Int) {
-        gatt?.discoverServices()
         if (status == BluetoothGatt.GATT_SUCCESS) {
             mCallback.onMtuChanged(gatt!!.device.address, mtu)
         }
@@ -200,14 +200,14 @@ internal class BleGattCallbackImpl(
      * Search bluetooth gatt service.
      */
     private fun findGattService(bluetoothGatt: BluetoothGatt): BluetoothGattService? {
-        val gattService = bluetoothGatt.getService(Env.preferenceServiceUuid)
+        val gattService = bluetoothGatt.getService(BleEnv.preferenceServiceUuid)
             ?: bluetoothGatt.services.find { gattService ->
                 gattService.findCharacteristic(
                     BluetoothGattCharacteristic.PROPERTY_NOTIFY
                 ) != null && gattService.findCharacteristic(BluetoothGattCharacteristic.PROPERTY_WRITE) != null
             }
         if (gattService == null) {
-            error("BluetoothGatt service not found! { address= ${bluetoothGatt.device.address}, service=${Env.preferenceServiceUuid} }")
+            error("BluetoothGatt service not found! { address= ${bluetoothGatt.device.address}, service=${BleEnv.preferenceServiceUuid} }")
         }
         return gattService
     }
@@ -217,14 +217,14 @@ internal class BleGattCallbackImpl(
      */
     private fun findNotifyTypeCharacteristic(gattService: BluetoothGattService): BluetoothGattCharacteristic? {
         val characteristic =
-            gattService.getCharacteristic(Env.preferenceNotifyChaUuid) ?: gattService.characteristics.find {
+            gattService.getCharacteristic(BleEnv.preferenceNotifyChaUuid) ?: gattService.characteristics.find {
                 it.hasProperties(
                     BluetoothGattCharacteristic.PROPERTY_NOTIFY
                 )
             }
         if (characteristic == null) {
             mCallback.onError(BleCentral.ERR_NOTIFY_CHARACTERISTIC_NOT_FOUND)
-            error("Notify characteristic not found! { uuid=${Env.preferenceNotifyChaUuid} }")
+            error("Notify characteristic not found! { uuid=${BleEnv.preferenceNotifyChaUuid} }")
         }
         return characteristic
     }
@@ -234,14 +234,14 @@ internal class BleGattCallbackImpl(
      */
     private fun findWriteTypeCharacteristic(gattService: BluetoothGattService): BluetoothGattCharacteristic? {
         val characteristic =
-            gattService.getCharacteristic(Env.preferenceWriteChaUuid) ?: gattService.characteristics.find {
+            gattService.getCharacteristic(BleEnv.preferenceWriteChaUuid) ?: gattService.characteristics.find {
                 it.hasProperties(
                     BluetoothGattCharacteristic.PROPERTY_WRITE
                 )
             }
         if (characteristic == null) {
             mCallback.onError(BleCentral.ERR_WRITE_CHARACTERISTIC_NOT_FOUND)
-            error("Write characteristic not found! { uuid=${Env.preferenceWriteChaUuid} }")
+            error("Write characteristic not found! { uuid=${BleEnv.preferenceWriteChaUuid} }")
         }
         return characteristic
     }

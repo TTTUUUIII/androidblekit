@@ -3,27 +3,29 @@ package com.outlook.wn123o.blekit.common
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
 import android.os.SystemClock
-import com.outlook.wn123o.blekit.Env.LOG_TAG
+import com.outlook.wn123o.blekit.BleEnv.LOG_TAG
 import android.util.Log
-import com.outlook.wn123o.blekit.Env
+import com.outlook.wn123o.blekit.BleEnv
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import java.util.concurrent.Executors
 
 private val mExecutor = Executors.newSingleThreadExecutor()
 
 internal fun <T> T.debug(msg: String) {
-    if (Env.logLevel <= Log.DEBUG) {
+    if (BleEnv.logLevel <= Log.DEBUG) {
         Log.d(LOG_TAG, "[DEBUG] $msg")
     }
 }
 
 internal fun <T> T.error(msg: String) {
-    if (Env.logLevel <= Log.ERROR) {
+    if (BleEnv.logLevel <= Log.ERROR) {
         Log.e(LOG_TAG, "[ERROR] $msg")
     }
 }
 
 internal fun <T> T.message(msg: String) {
-    if (Env.logLevel <= Log.INFO) {
+    if (BleEnv.logLevel <= Log.INFO) {
         Log.i(LOG_TAG, "[INFO] $msg")
     }
 }
@@ -35,6 +37,10 @@ internal fun <T> T.runAtDelayed(mill: Long, action: Runnable) {
             action.run()
         }
 }
+
+private val mainScope = CoroutineScope(Dispatchers.Main)
+
+internal fun <T> T.mainScope() = mainScope
 
 private fun BluetoothGattCharacteristic.hasProperty(property: Int): Boolean = properties and property == property
 internal fun BluetoothGattCharacteristic.hasProperties(vararg properties: Int): Boolean {

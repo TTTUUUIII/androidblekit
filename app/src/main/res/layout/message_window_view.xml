@@ -29,6 +29,7 @@
                 android:layout_height="wrap_content" />
             <Button
                 android:id="@+id/send_msg_button"
+                android:onClick="@{viewModel::onAction}"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:cornerRadius = "5dp"

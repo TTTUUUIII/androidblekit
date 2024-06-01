@@ -4,13 +4,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : AppCompatActivity() {
-
-    private val mViewModel by lazy {
-        ViewModelProvider(this)[MainActivityViewModel::class.java]
-    }
 
     private val mRuntimePermission: MutableList<String> = mutableListOf()
 

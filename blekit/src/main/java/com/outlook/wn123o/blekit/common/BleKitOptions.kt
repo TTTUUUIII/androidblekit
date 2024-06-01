@@ -9,6 +9,7 @@ data class BleKitOptions @JvmOverloads constructor(
     var preferenceWritableChaUuid: String = ble16BitUuid("14EB"),
     var preferenceNotifyChaUuid: String = ble16BitUuid("14EC"),
     var leScanMode: Int = ScanSettings.SCAN_MODE_LOW_POWER,
+    var leScanFeatureOnlyReportOnce: Boolean = true,
     var leAdvertiseMode: Int = AdvertiseSettings.ADVERTISE_MODE_LOW_POWER,
     var expectMtuSize: Int = 185,
     var logLevel: Int = Log.ERROR

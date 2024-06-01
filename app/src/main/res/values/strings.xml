@@ -19,4 +19,5 @@
     <string name="str_le_address">蓝牙地址：</string>
     <string name="str_connected">已连接</string>
     <string name="str_disconnected">未连接</string>
+    <string name="str_filter_by_name">使用设备名过滤</string>
 </resources>

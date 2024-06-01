@@ -8,17 +8,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
-import com.outlook.wn123o.androidblekit.MainActivityViewModel
-import com.outlook.wn123o.androidblekit.R
-import com.outlook.wn123o.androidblekit.common.runOnUiThread
-import com.outlook.wn123o.androidblekit.common.timeZone
-import com.outlook.wn123o.androidblekit.common.toast
 import com.outlook.wn123o.androidblekit.databinding.FragmentBleCentralBinding
 import com.outlook.wn123o.androidblekit.databinding.MessageWindowViewBinding
-import com.outlook.wn123o.blekit.interfaces.BleCentralCallback
 
-class BleCentralFragment : Fragment(), BleCentralCallback {
+class BleCentralFragment : Fragment() {
 
     private val mViewModel by lazy {
         ViewModelProvider(this)[BleCentralFragmentViewModel::class.java]
@@ -32,13 +25,7 @@ class BleCentralFragment : Fragment(), BleCentralCallback {
         MessageWindowViewBinding.inflate(layoutInflater, binding.messageWindow, true)
     }
 
-    private val bleCentral by lazy {
-        ViewModelProvider(requireActivity())[MainActivityViewModel::class.java].getBleCentral(this)
-    }
-
     private var mBluetoothDevice: BluetoothDevice? = null
-
-    private var mConnected = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,9 +35,8 @@ class BleCentralFragment : Fragment(), BleCentralCallback {
             arguments?.getParcelable(KEY_ARG_BLE_DEVICE) as? BluetoothDevice
         }
 
-        if (mBluetoothDevice != null) {
+        mBluetoothDevice?.let { bluetoothDevice ->
             mViewModel.updateRemoteRssiState(arguments?.getInt(KEY_ARG_BLE_RSSI) ?: 0)
-            bleCentral.connect(mBluetoothDevice!!)
         }
     }
 
@@ -65,54 +51,18 @@ class BleCentralFragment : Fragment(), BleCentralCallback {
         binding.lifecycleOwner = this
         messageBinding.viewModel = mViewModel
         messageBinding.lifecycleOwner = this
-        setupActions()
     }
 
-    private fun setupActions() {
-        messageBinding.sendMsgButton.setOnClickListener { _ ->
-            if (mViewModel.txMsg.isNotEmpty() && mConnected) {
-                bleCentral.writeBytes(mBluetoothDevice!!.address, mViewModel.txMsg.encodeToByteArray())
-            } else {
-                toast(R.string.str_send_failure)
-            }
-        }
-        binding.refreshRssiButton.setOnClickListener { _ ->
-            if (mConnected) {
-                bleCentral.readRemoteRssi(mBluetoothDevice!!.address)
-            }
+    override fun onStart() {
+        super.onStart()
+        mBluetoothDevice?.let { bluetoothDevice ->
+            mViewModel.connect(bluetoothDevice)
         }
     }
 
-    override fun onConnected(bleAddress: String) {
-        mViewModel.updateConnectState(getString(R.string.str_connected))
-        mViewModel.updateRemoteAddressState(bleAddress)
-        mConnected = true
-    }
-
-    override fun onMessage(bleAddress: String, bytes: ByteArray, offset: Int) {
-        mViewModel.putMsg("${timeZone()}: ${String(bytes)}")
-    }
-
-    override fun onDisconnected(bleAddress: String) {
-        mViewModel.updateConnectState(getString(R.string.str_disconnected))
-        mViewModel.updateRemoteAddressState("")
-        mBluetoothDevice = null
-        mConnected = false
-        runOnUiThread {
-            toast(R.string.str_connection_lost)
-            findNavController().popBackStack()
-        }
-    }
-
-    override fun onReadRemoteRssi(bleAddress: String, rssi: Int) {
-        mViewModel.updateRemoteRssiState(rssi)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (mConnected) {
-            bleCentral.disconnect(mBluetoothDevice!!.address)
-        }
+    override fun onStop() {
+        super.onStop()
+        mViewModel.disconnect()
     }
 
     companion object {

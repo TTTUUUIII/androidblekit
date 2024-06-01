@@ -1,14 +1,16 @@
 package com.outlook.wn123o.androidblekit.ui
 
+import android.view.View
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.outlook.wn123o.androidblekit.interfaces.WrapperContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import java.lang.StringBuilder
 
-open class BaseViewModel: ViewModel() {
+open class BaseViewModel: ViewModel(), WrapperContext {
     var txMsg = ""
 
     private var rxMsg: StringBuilder = StringBuilder("")
@@ -37,5 +39,9 @@ open class BaseViewModel: ViewModel() {
         _remoteAddressState.update {
             newState
         }
+    }
+
+    open fun onAction(view: View) {
+
     }
 }

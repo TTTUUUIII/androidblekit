@@ -8,13 +8,15 @@ import android.bluetooth.le.AdvertiseCallback
 import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
-import com.outlook.wn123o.blekit.Env
+import com.outlook.wn123o.blekit.BleEnv
+import com.outlook.wn123o.blekit.common.mainScope
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralApi
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralCallback
+import kotlinx.coroutines.launch
 
 @SuppressLint("MissingPermission")
 class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null): AdvertiseCallback(), BlePeripheralCallback, BlePeripheralApi {
-    private val mCtx = Env.context
+    private val mCtx = BleEnv.applicationContext
     private val mAdapter: BluetoothAdapter
     private var mGattServer: BluetoothGattServer
     private val mGattCallback: BleGattServerCallbackImpl
@@ -35,7 +37,7 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
         super.onStartSuccess(settingsInEffect)
         mAdvertising = true
         val service = mGattServer
-            .getService(Env.preferenceServiceUuid)
+            .getService(BleEnv.preferenceServiceUuid)
         if (service == null) {
             mGattServer.addService(mGattService)
         }
@@ -48,7 +50,7 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
 
     private fun getGattService(): BluetoothGattService {
         val service = BluetoothGattService(
-            Env.preferenceServiceUuid,
+            BleEnv.preferenceServiceUuid,
             BluetoothGattService.SERVICE_TYPE_PRIMARY
         )
         service.addCharacteristic(mGattCallback.getWritableCharacteristic())
@@ -63,7 +65,7 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
     override fun startup() = startup(null)
 
     override fun startup(advertiseData: AdvertiseData?) {
-        startAdvertising(advertiseData ?: Env.advertiseData)
+        startAdvertising(advertiseData ?: BleEnv.advertiseData)
     }
 
     override fun shutdown() {
@@ -78,16 +80,25 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
     }
 
     override fun onMessage(bleAddress: String, bytes: ByteArray, offset: Int) {
-        mExternCallback?.onMessage(bleAddress, bytes, offset)
+        mainScope()
+            .launch {
+                mExternCallback?.onMessage(bleAddress, bytes, offset)
+            }
     }
 
     override fun onConnected(bleAddress: String) {
         stopAdvertising()
-        mExternCallback?.onConnected(bleAddress)
+        mainScope()
+            .launch {
+                mExternCallback?.onConnected(bleAddress)
+            }
     }
 
     override fun onDisconnected(bleAddress: String) {
-        mExternCallback?.onDisconnected(bleAddress)
+        mainScope()
+            .launch {
+                mExternCallback?.onDisconnected(bleAddress)
+            }
     }
 
     private fun startAdvertising(advertiseData: AdvertiseData) {
@@ -95,7 +106,7 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
             mAdapter
                 .bluetoothLeAdvertiser
                 .startAdvertising(
-                    Env.advertiseSettings,
+                    BleEnv.advertiseSettings,
                     advertiseData,
                     this
                 )
@@ -111,8 +122,12 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
         }
     }
 
-    override fun setPeripheralCallback(callback: BlePeripheralCallback) {
+    override fun registerCallback(callback: BlePeripheralCallback) {
         mExternCallback = callback
+    }
+
+    override fun unregisterCallback() {
+        mExternCallback = null
     }
 
     companion object {

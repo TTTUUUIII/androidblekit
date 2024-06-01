@@ -1,21 +1,22 @@
 package com.outlook.wn123o.blekit
 
-import android.app.Application
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.bluetooth.le.ScanSettings
+import android.content.Context
 import android.util.Log
 import java.util.UUID
 
-internal object Env {
+internal object BleEnv {
 
     const val LOG_TAG = "AndroidBleKit"
 
-    lateinit var context: Application
+    lateinit var applicationContext: Context
 
     lateinit var advertiseSettings: AdvertiseSettings
     lateinit var scanSettings: ScanSettings
+    var scanFeatureOnlyReportOnce: Boolean = true
     lateinit var advertiseData: AdvertiseData
 
     var logLevel = Log.ERROR

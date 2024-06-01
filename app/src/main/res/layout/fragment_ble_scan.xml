@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data>
+        <variable
+            name="viewModel"
+            type="com.outlook.wn123o.androidblekit.ui.BleScanFragmentViewModel" />
+    </data>
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
@@ -7,6 +12,15 @@
         android:orientation="vertical"
         android:paddingHorizontal="10dp"
         tools:context=".ui.BleScanFragment">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <EditText
+                android:hint="@string/str_filter_by_name"
+                android:text="@={viewModel.deviceNamePatternLiveData}"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
@@ -14,7 +28,8 @@
             android:layout_weight="1" />
 
         <Button
-            android:id="@+id/scan_button"
+            android:id="@+id/btn_scan"
+            android:onClick="@{viewModel::onAction}"
             android:layout_gravity="end"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
