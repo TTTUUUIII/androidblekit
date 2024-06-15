@@ -8,6 +8,7 @@ import android.bluetooth.le.AdvertiseCallback
 import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
+import android.os.ParcelUuid
 import com.outlook.wn123o.blekit.BleEnv
 import com.outlook.wn123o.blekit.common.mainScope
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralApi
@@ -62,10 +63,29 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
         return mGattCallback.writeBytes(bleAddress, bytes)
     }
 
-    override fun startup() = startup(null)
+    override fun startup() {
+        val advertiseData = AdvertiseData.Builder()
+            .setIncludeDeviceName(false)
+            .addServiceUuid(
+                ParcelUuid(BleEnv.preferenceServiceUuid)
+            )
+            .build()
+        startup(advertiseData)
+    }
 
-    override fun startup(advertiseData: AdvertiseData?) {
-        startAdvertising(advertiseData ?: BleEnv.advertiseData)
+    override fun startup(advertiseData: AdvertiseData) {
+        startAdvertising(advertiseData)
+    }
+
+    override fun startup(manufacturerId: Int, manufacturerData: ByteArray) {
+        val advertiseData = AdvertiseData.Builder()
+            .setIncludeDeviceName(false)
+            .addServiceUuid(
+                ParcelUuid(BleEnv.preferenceServiceUuid)
+            )
+            .addManufacturerData(manufacturerId, manufacturerData)
+            .build()
+        startup(advertiseData)
     }
 
     override fun shutdown() {

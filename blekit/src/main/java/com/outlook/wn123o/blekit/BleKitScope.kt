@@ -26,12 +26,6 @@ object BleKitScope {
             .Builder()
             .setScanMode(options.leScanMode)
             .build()
-        BleEnv.advertiseData = AdvertiseData.Builder()
-            .setIncludeDeviceName(false)
-            .addServiceUuid(
-                ParcelUuid(BleEnv.preferenceServiceUuid)
-            )
-            .build()
         BleEnv.scanFeatureOnlyReportOnce = options.leScanFeatureOnlyReportOnce
         BleEnv.expectMtuSize = options.expectMtuSize
         BleEnv.logLevel = options.logLevel

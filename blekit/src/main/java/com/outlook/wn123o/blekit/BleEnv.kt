@@ -17,7 +17,6 @@ internal object BleEnv {
     lateinit var advertiseSettings: AdvertiseSettings
     lateinit var scanSettings: ScanSettings
     var scanFeatureOnlyReportOnce: Boolean = true
-    lateinit var advertiseData: AdvertiseData
 
     var logLevel = Log.ERROR
 
