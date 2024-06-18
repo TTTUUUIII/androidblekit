@@ -15,6 +15,7 @@ import com.outlook.wn123o.blekit.common.error
 import com.outlook.wn123o.blekit.common.findCharacteristic
 import com.outlook.wn123o.blekit.common.hasProperties
 import com.outlook.wn123o.blekit.common.message
+import com.outlook.wn123o.blekit.common.runAtDelayed
 import com.outlook.wn123o.blekit.interfaces.BleCentralCallback
 import java.io.Closeable
 
@@ -90,7 +91,9 @@ internal class BleGattCallbackImpl(
                 mWriteCharacteristic = findWriteTypeCharacteristic(gattService)
                     ?.also { characteristic ->
                         message("Write type characteristic: { uuid=${characteristic.uuid} }")
-                        mCallback.onReadyToWrite(bleAddress)
+                        runAtDelayed(200L) {
+                            mCallback.onReadyToWrite(bleAddress)
+                        }
                     }
             } else {
                 error("Gatt service not found: { uuid=${BleEnv.preferenceServiceUuid} }")

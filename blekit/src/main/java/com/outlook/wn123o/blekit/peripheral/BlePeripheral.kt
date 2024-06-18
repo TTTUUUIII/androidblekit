@@ -105,10 +105,14 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
 
     override fun onConnected(bleAddress: String) {
         stopAdvertising()
+        mainScope()
+            .launch {
+                mExternCallback?.onConnected(bleAddress)
+            }
         runAtDelayed(200L) {
             mainScope()
                 .launch {
-                    mExternCallback?.onConnected(bleAddress)
+                    mExternCallback?.onReadyToWrite(bleAddress)
                 }
         }
     }

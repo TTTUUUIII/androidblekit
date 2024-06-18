@@ -51,12 +51,10 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
     }
 
     override fun onReadyToWrite(bleAddress: String) {
-        runAtDelayed(200L) {
-            mainScope()
-                .launch {
-                    mExternCallback?.onReadyToWrite(bleAddress)
-                }
-        }
+        mainScope()
+            .launch {
+                mExternCallback?.onReadyToWrite(bleAddress)
+            }
     }
 
     override fun onReadRemoteRssi(bleAddress: String, rssi: Int) {
