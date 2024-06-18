@@ -10,7 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import java.util.concurrent.Executors
 
-private val mExecutor = Executors.newSingleThreadExecutor()
+private val mExecutor = Executors.newFixedThreadPool(3)
 
 internal fun <T> T.debug(msg: String) {
     if (BleEnv.logLevel <= Log.DEBUG) {
