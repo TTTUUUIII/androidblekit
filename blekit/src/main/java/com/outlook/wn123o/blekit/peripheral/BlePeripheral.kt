@@ -15,6 +15,7 @@ import com.outlook.wn123o.blekit.common.runAtDelayed
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralApi
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralCallback
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 @SuppressLint("MissingPermission")
 class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null): AdvertiseCallback(), BlePeripheralCallback, BlePeripheralApi {
@@ -64,30 +65,25 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
         return mGattCallback.writeBytes(bleAddress, bytes)
     }
 
-    override fun startup() {
-        val advertiseData = AdvertiseData.Builder()
+    override fun startup(
+        manufacturerId: Int?,
+        manufacturerData: ByteArray?,
+        dataServiceUUID: UUID?,
+        dataServiceData: ByteArray?
+    ) {
+        val advertiseDataBuilder = AdvertiseData.Builder()
             .setIncludeDeviceName(false)
-            .addServiceUuid(
-                ParcelUuid(BleEnv.preferenceServiceUuid)
-            )
-            .build()
-        startup(advertiseData)
+            .addServiceUuid(ParcelUuid(BleEnv.preferenceServiceUuid))
+        if (manufacturerId != null && manufacturerData != null) {
+            advertiseDataBuilder.addManufacturerData(manufacturerId, manufacturerData)
+        }
+        if (dataServiceUUID != null && dataServiceData != null) {
+            advertiseDataBuilder.addServiceData(ParcelUuid(dataServiceUUID), dataServiceData)
+        }
+        startup(advertiseDataBuilder.build())
     }
 
-    override fun startup(advertiseData: AdvertiseData) {
-        startAdvertising(advertiseData)
-    }
-
-    override fun startup(manufacturerId: Int, manufacturerData: ByteArray) {
-        val advertiseData = AdvertiseData.Builder()
-            .setIncludeDeviceName(false)
-            .addServiceUuid(
-                ParcelUuid(BleEnv.preferenceServiceUuid)
-            )
-            .addManufacturerData(manufacturerId, manufacturerData)
-            .build()
-        startup(advertiseData)
-    }
+    override fun startup(advertiseData: AdvertiseData) = startAdvertising(advertiseData)
 
     override fun shutdown() {
         if (mAdvertising) stopAdvertising()
