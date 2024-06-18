@@ -11,6 +11,7 @@ import android.content.Context
 import android.os.ParcelUuid
 import com.outlook.wn123o.blekit.BleEnv
 import com.outlook.wn123o.blekit.common.mainScope
+import com.outlook.wn123o.blekit.common.runAtDelayed
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralApi
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralCallback
 import kotlinx.coroutines.launch
@@ -108,10 +109,12 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
 
     override fun onConnected(bleAddress: String) {
         stopAdvertising()
-        mainScope()
-            .launch {
-                mExternCallback?.onConnected(bleAddress)
-            }
+        runAtDelayed(200L) {
+            mainScope()
+                .launch {
+                    mExternCallback?.onConnected(bleAddress)
+                }
+        }
     }
 
     override fun onDisconnected(bleAddress: String) {

@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice
 import com.outlook.wn123o.blekit.BleEnv
 import com.outlook.wn123o.blekit.common.debug
 import com.outlook.wn123o.blekit.common.mainScope
+import com.outlook.wn123o.blekit.common.runAtDelayed
 import com.outlook.wn123o.blekit.interfaces.BleCentralApi
 import com.outlook.wn123o.blekit.interfaces.BleCentralCallback
 import kotlinx.coroutines.launch
@@ -50,9 +51,11 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
     }
 
     override fun onReadyToWrite(bleAddress: String) {
-        mainScope()
-            .launch {
-            mExternCallback?.onReadyToWrite(bleAddress)
+        runAtDelayed(200L) {
+            mainScope()
+                .launch {
+                    mExternCallback?.onReadyToWrite(bleAddress)
+                }
         }
     }
 

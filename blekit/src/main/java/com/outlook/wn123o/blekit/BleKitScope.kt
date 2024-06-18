@@ -1,10 +1,8 @@
 package com.outlook.wn123o.blekit
 
-import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.bluetooth.le.ScanSettings
 import android.content.Context
-import android.os.ParcelUuid
 import com.outlook.wn123o.blekit.common.BleKitOptions
 import java.util.UUID
 

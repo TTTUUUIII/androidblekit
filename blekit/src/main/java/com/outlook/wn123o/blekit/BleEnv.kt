@@ -1,7 +1,6 @@
 package com.outlook.wn123o.blekit
 
 import android.bluetooth.BluetoothGattDescriptor
-import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.bluetooth.le.ScanSettings
 import android.content.Context
