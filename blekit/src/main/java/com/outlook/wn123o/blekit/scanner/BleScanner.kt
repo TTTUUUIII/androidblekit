@@ -71,4 +71,6 @@ class BleScanner: ScanCallback() {
     override fun onBatchScanResults(results: MutableList<ScanResult>?) {
         mExternScanAdapter?.onBatchScanResults(results)
     }
+
+    fun isScanning(): Boolean = mScanning
 }
