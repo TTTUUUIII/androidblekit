@@ -8,12 +8,14 @@
     <string name="title_select">选择</string>
     <string name="str_scan">开始扫描</string>
     <string name="str_advertise">开始广播</string>
+    <string name="str_advertise_failed">广播失败</string>
     <string name="str_connect">连接</string>
     <string name="str_send">发送</string>
     <string name="str_input_msg">输入消息</string>
     <string name="str_send_failure">发送失败</string>
     <string name="str_confirm">确认</string>
     <string name="str_connection_lost">连接丢失</string>
+    <string name="str_connection_failed">连接失败</string>
     <string name="str_refresh">刷新</string>
     <string name="str_status">状态：</string>
     <string name="str_le_address">蓝牙地址：</string>

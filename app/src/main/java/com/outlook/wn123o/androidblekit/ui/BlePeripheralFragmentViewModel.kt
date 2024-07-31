@@ -38,6 +38,12 @@ class BlePeripheralFragmentViewModel: BaseViewModel(), BlePeripheralCallback {
 //        blePeripheral.startup()
     }
 
+    override fun onError(error: Int) {
+        if (error == BlePeripheral.ERR_ADVERTISE_FAILED) {
+            toast(R.string.str_advertise_failed)
+        }
+    }
+
     private fun isConnected() = remoteAddressState.value.isNotEmpty()
 
     private fun writeBytes(bytes: ByteArray): Boolean {

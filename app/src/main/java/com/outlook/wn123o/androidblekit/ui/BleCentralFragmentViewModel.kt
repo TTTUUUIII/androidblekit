@@ -5,6 +5,7 @@ import android.view.View
 import com.outlook.wn123o.androidblekit.R
 import com.outlook.wn123o.androidblekit.common.error
 import com.outlook.wn123o.androidblekit.common.getString
+import com.outlook.wn123o.androidblekit.common.requireApplicationContext
 import com.outlook.wn123o.androidblekit.common.timeZone
 import com.outlook.wn123o.blekit.central.BleCentral
 import com.outlook.wn123o.blekit.interfaces.BleCentralCallback
@@ -52,6 +53,13 @@ class BleCentralFragmentViewModel: BaseViewModel(), BleCentralCallback {
 
     override fun onReadRemoteRssi(bleAddress: String, rssi: Int) {
         updateRemoteRssiState(rssi)
+    }
+
+    override fun onError(error: Int, address: String?) {
+        super.onError(error, address)
+        if (error == BleCentral.ERR_CONNECT_FAILED) {
+            toast(R.string.str_connection_failed)
+        }
     }
 
     private fun isConnected() = remoteAddressState.value.isNotEmpty()

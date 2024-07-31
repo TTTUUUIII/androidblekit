@@ -46,10 +46,4 @@ interface BleCallback {
     fun onDisconnected(bleAddress: String)
 
     fun onMtuChanged(bleAddress: String, mtu: Int) {}
-
-    /**
-     * Some error happened
-     * @param error Int
-     */
-    fun onError(error: Int) {}
 }

@@ -28,6 +28,7 @@ internal class BleGattCallbackImpl(
 
     private var mGatt: BluetoothGatt? = null
     private val mWritableCharacteristics = mutableListOf<BluetoothGattCharacteristic>()
+    private var waiting = true
 
     init {
         mRemote.connectGatt(context, false, this)
@@ -57,12 +58,16 @@ internal class BleGattCallbackImpl(
             }
 
             BluetoothGatt.STATE_DISCONNECTED -> {
-                mCallback.onDisconnected(mRemote.address)
-                mGatt = null
+                if (waiting) {
+                    mCallback.onError(BleCentral.ERR_CONNECT_FAILED, mRemote.address)
+                } else {
+                    mCallback.onDisconnected(mRemote.address)
+                    mGatt = null
+                }
             }
-
             else -> {}
         }
+        waiting = false
     }
 
     override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {

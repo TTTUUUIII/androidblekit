@@ -1,9 +1,12 @@
 package com.outlook.wn123o.androidblekit.ui
 
 import android.view.View
+import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.outlook.wn123o.androidblekit.common.requireApplicationContext
 import com.outlook.wn123o.androidblekit.interfaces.WrapperContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,5 +46,13 @@ open class BaseViewModel: ViewModel(), WrapperContext {
 
     open fun onAction(view: View) {
 
+    }
+
+    fun toast(@StringRes stringRes: Int) {
+        Toast.makeText(requireApplicationContext(), stringRes, Toast.LENGTH_SHORT).show()
+    }
+
+    fun toast(message: String) {
+        Toast.makeText(requireApplicationContext(), message, Toast.LENGTH_SHORT).show()
     }
 }

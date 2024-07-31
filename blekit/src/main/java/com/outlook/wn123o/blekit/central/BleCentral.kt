@@ -19,7 +19,6 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
     private val mCtx = BleEnvironment.applicationContext
 
     private val mConnections = mutableMapOf<String, BleGattCallbackImpl>()
-
     
     override fun connect(device: BluetoothDevice) {
         debug("connect to ${device.address}")
@@ -64,9 +63,13 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
         }
     }
 
-    override fun onError(error: Int) {
+    override fun onError(error: Int, address: String?) {
+        if (error == ERR_CONNECT_FAILED) {
+            mConnections.remove(address)
+            error("Unable connect to $address")
+        }
         runOnUiThread {
-            mExternCallback?.onError(error)
+            mExternCallback?.onError(error, address)
         }
     }
 
@@ -111,6 +114,9 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
 
     
     companion object {
+
+        const val ERR_CONNECT_FAILED = 1
+
         @JvmStatic
         fun setCharacteristicNotification(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, enable: Boolean): Boolean {
             val success =
