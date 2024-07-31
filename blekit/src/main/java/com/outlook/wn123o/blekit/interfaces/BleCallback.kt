@@ -1,6 +1,5 @@
 package com.outlook.wn123o.blekit.interfaces
 
-import android.bluetooth.BluetoothGattCharacteristic
 import java.util.UUID
 
 interface BleCallback {

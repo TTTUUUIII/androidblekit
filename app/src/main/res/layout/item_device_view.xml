@@ -7,52 +7,50 @@
             name="bleDevice"
             type="BleDevice" />
     </data>
-    <FrameLayout
+    <com.google.android.material.card.MaterialCardView
+        style="@style/Widget.Material3.CardView.Outlined"
         android:layout_marginTop="5dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.Material3.CardView.Filled"
+        <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:paddingVertical="3dp"
+            android:paddingHorizontal="8dp">
             <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_gravity="center_vertical"
                 android:layout_height="wrap_content"
-                android:padding="8dp">
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-                    <TextView
-                        android:id="@+id/name_text_view"
-                        android:text="@{bleDevice.deviceName}"
-                        android:textStyle="bold"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
-                    <TextView
-                        android:id="@+id/address_text_view"
-                        android:text="@{bleDevice.bleAddress}"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"/>
-                </LinearLayout>
+                android:orientation="vertical">
                 <TextView
-                    android:id="@+id/rssi_text_view"
-                    android:layout_width="70dp"
-                    android:text="@{String.valueOf(bleDevice.rssi)}"
+                    android:id="@+id/name_text_view"
+                    android:text="@{bleDevice.deviceName}"
+                    android:textStyle="bold"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/connect_button"
-                    style="@style/Widget.Material3.Button.TextButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:text="@string/str_connect"
-                    app:cornerRadius="5dp" />
+                <TextView
+                    android:id="@+id/address_text_view"
+                    android:text="@{bleDevice.bleAddress}"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-    </FrameLayout>
+            <TextView
+                android:id="@+id/rssi_text_view"
+                android:layout_width="70dp"
+                android:text="@{String.valueOf(bleDevice.rssi)}"
+                android:layout_height="wrap_content" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/connect_button"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="@string/str_connect"
+                app:cornerRadius="5dp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 </layout>

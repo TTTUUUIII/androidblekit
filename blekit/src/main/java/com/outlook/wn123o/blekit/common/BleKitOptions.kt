@@ -8,7 +8,7 @@ import java.util.UUID
 data class BleKitOptions @JvmOverloads constructor(
     var uuidForAdvertise: UUID = ble16BitUuid(0x14DBL),
     var uuidForGattService: UUID = ble16BitUuid(0x14FBL),
-    var uuidForWrite: UUID = ble16BitUuid(0x14EBL),
+    var uuidForWritable: UUID = ble16BitUuid(0x14EBL),
     var uuidsForNotification: List<UUID> = listOf(ble16BitUuid(0x14ECL)),
     var leScanMode: Int = ScanSettings.SCAN_MODE_LOW_POWER,
     var leScanFeatureOnlyReportOnce: Boolean = true,

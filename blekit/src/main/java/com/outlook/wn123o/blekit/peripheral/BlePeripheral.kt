@@ -11,6 +11,7 @@ import android.content.Context
 import android.os.ParcelUuid
 import com.outlook.wn123o.blekit.BleEnvironment
 import com.outlook.wn123o.blekit.common.advertiser.BleAdvertiser
+import com.outlook.wn123o.blekit.common.debug
 import com.outlook.wn123o.blekit.common.error
 import com.outlook.wn123o.blekit.common.runAtDelayed
 import com.outlook.wn123o.blekit.common.runOnUiThread
@@ -22,9 +23,8 @@ import java.util.UUID
 class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null): AdvertiseCallback(), BlePeripheralCallback, BlePeripheralApi {
     private val mCtx = BleEnvironment.applicationContext
     private val mAdapter: BluetoothAdapter
-    private var mGattServer: BluetoothGattServer
+
     private val mGattCallback: BleGattServerCallbackImpl
-    private val mGattService: BluetoothGattService
     private val mLeAdvertiser = BleAdvertiser(this)
 
     init {
@@ -32,33 +32,15 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
         mAdapter = bleManager.adapter
         mGattCallback = BleGattServerCallbackImpl()
         mGattCallback.callback = this
-        mGattServer = bleManager.openGattServer(mCtx, mGattCallback)
-        mGattCallback.gattServer = mGattServer
-        mGattService = getGattService()
     }
 
     override fun onStartSuccess(settingsInEffect: AdvertiseSettings?) {
         super.onStartSuccess(settingsInEffect)
-        val service = mGattServer
-            .getService(BleEnvironment.uuidForGattService)
-        if (service == null) {
-            mGattServer.addService(mGattService)
-        }
     }
 
     override fun onStartFailure(errorCode: Int) {
         mExternCallback?.onError(ERR_ADVERTISE_FAILED)
         error("Unable start advertise, code=$errorCode")
-    }
-
-    private fun getGattService(): BluetoothGattService {
-        val service = BluetoothGattService(
-            BleEnvironment.uuidForGattService,
-            BluetoothGattService.SERVICE_TYPE_PRIMARY
-        )
-        mGattCallback.characteristicsForNotification.forEach(service::addCharacteristic)
-        service.addCharacteristic(mGattCallback.characteristicForWritable)
-        return service
     }
 
     override fun startup(
@@ -86,7 +68,7 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
             mLeAdvertiser.stopAdvertising()
         }
         mGattCallback.disconnect()
-        mGattServer.clearServices()
+        mGattCallback.releaseGatt()
     }
 
     override fun disconnect() = mGattCallback.disconnect()

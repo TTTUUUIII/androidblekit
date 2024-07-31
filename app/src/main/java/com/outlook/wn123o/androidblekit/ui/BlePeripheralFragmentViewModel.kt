@@ -35,7 +35,7 @@ class BlePeripheralFragmentViewModel: BaseViewModel(), BlePeripheralCallback {
     override fun onDisconnected(bleAddress: String) {
         updateConnectState(getString(R.string.str_disconnected))
         updateRemoteAddressState("")
-        blePeripheral.startup()
+//        blePeripheral.startup()
     }
 
     private fun isConnected() = remoteAddressState.value.isNotEmpty()

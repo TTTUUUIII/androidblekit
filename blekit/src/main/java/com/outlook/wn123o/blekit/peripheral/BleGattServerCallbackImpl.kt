@@ -8,40 +8,48 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattServer
 import android.bluetooth.BluetoothGattServerCallback
 import android.bluetooth.BluetoothGattService
+import android.bluetooth.BluetoothManager
+import android.content.Context
 import android.os.Build
 import com.outlook.wn123o.blekit.BleEnvironment
 import com.outlook.wn123o.blekit.common.debug
 import com.outlook.wn123o.blekit.common.message
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralCallback
-import java.util.Arrays
 import java.util.UUID
 
 @SuppressLint("MissingPermission")
 internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
 
-    lateinit var gattServer: BluetoothGattServer
+    private var mGattServer: BluetoothGattServer? = null
     lateinit var callback: BlePeripheralCallback
 
-    val characteristicForWritable = BluetoothGattCharacteristic(
-        BleEnvironment.uuidForWrite,
-        BluetoothGattCharacteristic.PROPERTY_WRITE
-               /* or BluetoothGattCharacteristic.PROPERTY_READ
-                or BluetoothGattCharacteristic.PROPERTY_INDICATE*/,
-        /*BluetoothGattCharacteristic.PERMISSION_READ
-                or*/ BluetoothGattCharacteristic.PERMISSION_WRITE
-    )
-
-    val characteristicsForNotification by lazy { BleEnvironment.buildCharacteristicsForNotification() }
+    private val mCharacteristicsForNotification by lazy { BleEnvironment.bleGattService.characteristicsForNotification }
 
     private var mConnection: BluetoothDevice? = null
 
+    init { prepareGatt() }
+
+    private fun prepareGatt() {
+        val context = BleEnvironment.applicationContext
+        val bluetoothManager =
+            context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        mGattServer = bluetoothManager.openGattServer(context, this)
+        mGattServer!!.clearServices()
+        mGattServer!!.addService(BleEnvironment.bleGattService.service)
+    }
+
+    fun releaseGatt() {
+        mGattServer?.clearServices()
+        mGattServer?.close()
+        mGattServer = null
+    }
     
     override fun onConnectionStateChange(device: BluetoothDevice?, status: Int, newState: Int) {
         debug("onConnectionStateChange: {state=$status, newState=$newState}")
         when (newState) {
             BluetoothGatt.STATE_CONNECTED -> {
                 device?.let { bluetoothDevice ->
-                    gattServer.connect(bluetoothDevice, true)
+                    mGattServer!!.connect(bluetoothDevice, false)
                     callback.onConnected(bluetoothDevice.address)
                     mConnection = bluetoothDevice
                 }
@@ -71,7 +79,7 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
         offset: Int,
         characteristic: BluetoothGattCharacteristic?
     ) {
-        gattServer.sendResponse(
+        mGattServer?.sendResponse(
             device,
             requestId,
             BluetoothGatt.GATT_SUCCESS,
@@ -91,7 +99,7 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
         value: ByteArray?
     ) {
         if (responseNeeded) {
-            gattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value)
+            mGattServer?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value)
         }
         callback.onMessage(device!!.address, characteristic.uuid, value!!, offset)
     }
@@ -103,7 +111,7 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
         offset: Int,
         descriptor: BluetoothGattDescriptor?
     ) {
-        gattServer.sendResponse(
+        mGattServer?.sendResponse(
             device,
             requestId,
             BluetoothGatt.GATT_SUCCESS,
@@ -122,15 +130,12 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
         offset: Int,
         value: ByteArray?
     ) {
-        if (Arrays.equals(value, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)) {
-            descriptor!!.value = value
-        }
         if (responseNeeded) {
-            gattServer.sendResponse(
+            mGattServer?.sendResponse(
                 device,
                 requestId,
                 BluetoothGatt.GATT_SUCCESS,
-                0,
+                offset,
                 descriptor!!.value
             )
         }
@@ -161,30 +166,29 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
     
     fun disconnect() {
         if (mConnection != null) {
-            gattServer.cancelConnection(mConnection)
+            mGattServer?.cancelConnection(mConnection)
             mConnection = null
         }
     }
 
     
     fun writeBytes(bytes: ByteArray): Boolean {
-        if (characteristicsForNotification.isEmpty()) return false
-        return writeBytes(characteristicsForNotification.first(), bytes)
+        if (mCharacteristicsForNotification.isEmpty()) return false
+        return writeBytes(mCharacteristicsForNotification.first(), bytes)
     }
 
     fun writeBytes(characteristicUuid: UUID, bytes: ByteArray): Boolean {
         val characteristic =
-            characteristicsForNotification.find { it.uuid == characteristicUuid } ?: return false
+            mCharacteristicsForNotification.find { it.uuid == characteristicUuid } ?: return false
         return writeBytes(characteristic, bytes)
     }
-
     
     private fun writeBytes(characteristic: BluetoothGattCharacteristic, bytes: ByteArray): Boolean {
         val device = mConnection ?: return false
         val indicate = characteristic
             .properties and BluetoothGattCharacteristic.PROPERTY_INDICATE == BluetoothGattCharacteristic.PROPERTY_INDICATE
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            gattServer.notifyCharacteristicChanged(
+            mGattServer?.notifyCharacteristicChanged(
                 device,
                 characteristic,
                 indicate,
@@ -192,7 +196,7 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
             )
         } else {
             characteristic.value = bytes
-            gattServer.notifyCharacteristicChanged(
+            mGattServer?.notifyCharacteristicChanged(
                 device,
                 characteristic,
                 indicate

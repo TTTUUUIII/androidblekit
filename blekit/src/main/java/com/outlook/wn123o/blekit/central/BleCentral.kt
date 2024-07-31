@@ -83,10 +83,12 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
             ?.close()
     }
 
-    override fun writeBytes(address: String, bytes: ByteArray): Boolean {
+    override fun writeBytes(address: String, data: ByteArray): Boolean = writeBytes(address, data, null)
+
+    override fun writeBytes(address: String, data: ByteArray, characteristic: UUID?): Boolean {
         mConnections[address]
             ?.also {
-                return it.writeBytes(bytes)
+                return it.writeBytes(data, characteristic)
             }
         return false
     }

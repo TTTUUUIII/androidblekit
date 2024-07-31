@@ -1,11 +1,11 @@
 package com.outlook.wn123o.blekit
 
-import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.le.AdvertiseSettings
 import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.util.Log
+import com.outlook.wn123o.blekit.common.BleGattService
 import com.outlook.wn123o.blekit.common.BleKitOptions
 import java.util.Objects
 import java.util.UUID
@@ -25,6 +25,8 @@ object BleEnvironment {
     internal var expectMtuSize = 185
 
     internal val notificationDescriptorUuid: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+
+    @JvmField
     internal val notificationDescriptor = BluetoothGattDescriptor(
         notificationDescriptorUuid,
         BluetoothGattDescriptor.PERMISSION_READ
@@ -32,17 +34,16 @@ object BleEnvironment {
     )
 
     internal lateinit var uuidForAdvertise: UUID
-    internal lateinit var uuidForGattService: UUID
-    internal val uuidsForNotification = mutableListOf<UUID>()
-    internal lateinit var uuidForWrite: UUID
+    internal lateinit var bleGattService: BleGattService
 
     @JvmStatic
     @JvmOverloads
     fun initialize(applicationContext: Context, options: BleKitOptions = BleKitOptions()) {
         this.applicationContext = Objects.requireNonNull(applicationContext)
-        options.uuidsForNotification.forEach(uuidsForNotification::add)
-        uuidForWrite = options.uuidForWrite
-        uuidForGattService = options.uuidForGattService
+        val builder = BleGattService.Builder(options.uuidForGattService)
+        builder.addUuidForWritable(options.uuidForWritable)
+        options.uuidsForNotification.forEach(builder::addUuidForNotification)
+        bleGattService = builder.build()
         uuidForAdvertise = options.uuidForAdvertise
         advertiseSettings = AdvertiseSettings
             .Builder()
@@ -60,15 +61,4 @@ object BleEnvironment {
 
     @JvmStatic
     fun getAdvertiseUuid(): UUID = uuidForAdvertise
-
-    internal fun buildCharacteristicsForNotification(): List<BluetoothGattCharacteristic> {
-        val characteristics = mutableListOf<BluetoothGattCharacteristic>()
-        uuidsForNotification.forEach { uuid ->
-            characteristics.add(BluetoothGattCharacteristic(
-                uuid,
-                BluetoothGattCharacteristic.PROPERTY_NOTIFY or BluetoothGattCharacteristic.PERMISSION_READ,
-                BluetoothGattCharacteristic.PERMISSION_READ))
-        }
-        return characteristics
-    }
 }

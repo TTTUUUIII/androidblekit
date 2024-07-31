@@ -10,12 +10,14 @@ import android.content.Context
 import android.os.Build
 import com.outlook.wn123o.blekit.BleEnvironment
 import com.outlook.wn123o.blekit.common.debug
+import com.outlook.wn123o.blekit.common.error
 import com.outlook.wn123o.blekit.common.hasProperty
 import com.outlook.wn123o.blekit.common.message
 import com.outlook.wn123o.blekit.common.runAtDelayed
 import com.outlook.wn123o.blekit.common.warn
 import com.outlook.wn123o.blekit.interfaces.BleCentralCallback
 import java.io.Closeable
+import java.util.UUID
 
 @SuppressLint("MissingPermission")
 internal class BleGattCallbackImpl(
@@ -25,7 +27,7 @@ internal class BleGattCallbackImpl(
 ) : BluetoothGattCallback(), Closeable {
 
     private var mGatt: BluetoothGatt? = null
-    private var mWritableCharacteristic: BluetoothGattCharacteristic? = null
+    private val mWritableCharacteristics = mutableListOf<BluetoothGattCharacteristic>()
 
     init {
         mRemote.connectGatt(context, false, this)
@@ -39,7 +41,7 @@ internal class BleGattCallbackImpl(
         super.onPhyRead(gatt, txPhy, rxPhy, status)
     }
 
-    @SuppressLint("MissingPermission")
+    
     override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
         debug("onConnectionStateChange: { state=$status, newState=$newState }")
         when (newState) {
@@ -68,20 +70,26 @@ internal class BleGattCallbackImpl(
             val bleAddress = gatt!!.device.address
             gatt.services.forEach { service ->
                 service.characteristics.forEach { characteristics ->
-                    if (characteristics.uuid in BleEnvironment.uuidsForNotification) {
+                    if (BleEnvironment.bleGattService.isExistInNotification(characteristics)) {
                         if (characteristics.hasProperty(BluetoothGattCharacteristic.PROPERTY_NOTIFY)) {
                             BleCentral.setCharacteristicNotification(gatt, characteristics, true)
                             message("Subscribed characteristics {uuid=${characteristics.uuid}}")
                         } else {
                             warn("Unable subscribe characteristics {uuid=${characteristics.uuid}}, because it is not a notification type!")
                         }
-                    } else if (characteristics.uuid == BleEnvironment.uuidForWrite) {
-                        mWritableCharacteristic = characteristics
-                        message("Writable characteristics {uuid=${characteristics.uuid}}")
-                        runAtDelayed(200L) {
-                            mCallback.onReadyToWrite(bleAddress)
+                    } else if (BleEnvironment.bleGattService.isExistInWritable(characteristics)) {
+                        if (characteristics.hasProperty(BluetoothGattCharacteristic.PROPERTY_WRITE) || characteristics.hasProperty(BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE)) {
+                            mWritableCharacteristics.add(characteristics)
+                            message("Writable characteristics {uuid=${characteristics.uuid}}")
+                        } else {
+                            warn("Unable write characteristics {uuid=${characteristics.uuid}}, because it is not a writable type!")
                         }
                     }
+                }
+            }
+            if (mWritableCharacteristics.isNotEmpty()) {
+                runAtDelayed(200L) {
+                    mCallback.onReadyToWrite(bleAddress)
                 }
             }
             mCallback.onServicesDiscovered(gatt)
@@ -128,7 +136,9 @@ internal class BleGattCallbackImpl(
         descriptor: BluetoothGattDescriptor?,
         status: Int
     ) {
-        debug("onDescriptorWrite: { status=$status }")
+        if (status != BluetoothGatt.GATT_SUCCESS) {
+            error("onDescriptorWrite: { status=$status }")
+        }
     }
 
     override fun onReliableWriteCompleted(gatt: BluetoothGatt?, status: Int) {
@@ -147,7 +157,7 @@ internal class BleGattCallbackImpl(
         }
     }
 
-    @SuppressLint("MissingPermission")
+    
     override fun close() {
         mGatt?.let { gatt ->
             gatt.disconnect()
@@ -155,31 +165,36 @@ internal class BleGattCallbackImpl(
             mGatt = null
         }
     }
-
-    fun writeBytes(bytes: ByteArray): Boolean {
+    
+    fun writeBytes(data: ByteArray, characteristicUuid: UUID? = null): Boolean {
+        if (mWritableCharacteristics.isEmpty()) return false
+        val characteristic = if (characteristicUuid == null) {
+            mWritableCharacteristics.first()
+        } else {
+            mWritableCharacteristics.find { it.uuid == characteristicUuid }
+        }
+        if (characteristic == null) return false
         mGatt?.let { gatt ->
-            mWritableCharacteristic?.let { characteristic ->
-                val writeType = if (
-                    characteristic.properties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE == BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE
-                ) {
-                    BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-                } else {
-                    BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    gatt.writeCharacteristic(
-                        characteristic,
-                        bytes,
-                        writeType
-                    )
-                } else {
-                    characteristic.value = bytes
-                    characteristic.writeType = writeType
-                    gatt.writeCharacteristic(characteristic)
-                }
+            val writeType = if (
+                characteristic.properties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE == BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE
+            ) {
+                BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+            } else {
+                BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                gatt.writeCharacteristic(
+                    characteristic,
+                    data,
+                    writeType
+                )
+            } else {
+                characteristic.value = data
+                characteristic.writeType = writeType
+                gatt.writeCharacteristic(characteristic)
             }
         }
-        return mGatt != null && mWritableCharacteristic != null
+        return mGatt != null
     }
 
     fun readRemoteRssi() {
