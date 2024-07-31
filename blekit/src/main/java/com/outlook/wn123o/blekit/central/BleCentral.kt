@@ -2,87 +2,91 @@ package com.outlook.wn123o.blekit.central
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
-import com.outlook.wn123o.blekit.BleEnv
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothGattDescriptor
+import android.os.Build
+import com.outlook.wn123o.blekit.BleEnvironment
 import com.outlook.wn123o.blekit.common.debug
-import com.outlook.wn123o.blekit.common.mainScope
-import com.outlook.wn123o.blekit.common.runAtDelayed
+import com.outlook.wn123o.blekit.common.error
+import com.outlook.wn123o.blekit.common.runOnUiThread
 import com.outlook.wn123o.blekit.interfaces.BleCentralApi
 import com.outlook.wn123o.blekit.interfaces.BleCentralCallback
-import kotlinx.coroutines.launch
+import java.util.UUID
 
+@SuppressLint("MissingPermission")
 class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCentralCallback, BleCentralApi {
-    private val mCtx = BleEnv.applicationContext
+    private val mCtx = BleEnvironment.applicationContext
 
     private val mConnections = mutableMapOf<String, BleGattCallbackImpl>()
 
-    @SuppressLint("MissingPermission")
+    
     override fun connect(device: BluetoothDevice) {
         debug("connect to ${device.address}")
         mConnections[device.address] = BleGattCallbackImpl(mCtx, device, this)
     }
 
     override fun onConnected(bleAddress: String) {
-        mainScope()
-            .launch {
-                mExternCallback?.onConnected(bleAddress)
-            }
+        runOnUiThread {
+            mExternCallback?.onConnected(bleAddress)
+        }
     }
 
-    override fun onMessage(bleAddress: String, bytes: ByteArray, offset: Int) {
-        mainScope()
-            .launch {
-                mExternCallback?.onMessage(bleAddress, bytes, offset)
-            }
+    override fun onMessage(address: String, characteristic: UUID, bytes: ByteArray, offset: Int) {
+        super.onMessage(address, characteristic, bytes, offset)
+        runOnUiThread {
+            mExternCallback?.onMessage(address, characteristic, bytes, offset)
+        }
     }
 
     override fun onDisconnected(bleAddress: String) {
         mConnections.remove(bleAddress)
-        mainScope()
-            .launch {
-                mExternCallback?.onDisconnected(bleAddress)
-            }
+        runOnUiThread {
+            mExternCallback?.onDisconnected(bleAddress)
+        }
     }
 
     override fun onMtuChanged(bleAddress: String, mtu: Int) {
-        mainScope()
-            .launch {
+        runOnUiThread {
             mExternCallback?.onMtuChanged(bleAddress, mtu)
         }
     }
 
     override fun onReadyToWrite(bleAddress: String) {
-        mainScope()
-            .launch {
-                mExternCallback?.onReadyToWrite(bleAddress)
-            }
+        runOnUiThread {
+            mExternCallback?.onReadyToWrite(bleAddress)
+        }
     }
 
     override fun onReadRemoteRssi(bleAddress: String, rssi: Int) {
-        mainScope()
-            .launch {
+        runOnUiThread {
             mExternCallback?.onReadRemoteRssi(bleAddress, rssi)
         }
     }
 
     override fun onError(error: Int) {
-        mainScope()
-            .launch {
+        runOnUiThread {
             mExternCallback?.onError(error)
         }
     }
 
-    @SuppressLint("MissingPermission")
+    override fun onServicesDiscovered(gatt: BluetoothGatt) {
+        runOnUiThread {
+            mExternCallback?.onServicesDiscovered(gatt)
+        }
+    }
+
+    
     override fun disconnect(bleAddress: String) {
         mConnections
             .remove(bleAddress)
             ?.close()
     }
 
-    override fun writeBytes(bleAddress: String, bytes: ByteArray): Boolean {
-        mConnections[bleAddress]
+    override fun writeBytes(address: String, bytes: ByteArray): Boolean {
+        mConnections[address]
             ?.also {
-                it.writeBytes(bytes)
-                return true
+                return it.writeBytes(bytes)
             }
         return false
     }
@@ -103,8 +107,31 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
         return false
     }
 
+    
     companion object {
-        const val ERR_WRITE_CHARACTERISTIC_NOT_FOUND = -1
-        const val ERR_NOTIFY_CHARACTERISTIC_NOT_FOUND = -2
+        @JvmStatic
+        fun setCharacteristicNotification(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, enable: Boolean): Boolean {
+            val success =
+                gatt.setCharacteristicNotification(characteristic, enable)
+            val descriptorValue = if (enable) BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE else BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
+            if (success) {
+                characteristic.getDescriptor(BleEnvironment.notificationDescriptorUuid)
+                    ?.let { descriptor ->
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            gatt.writeDescriptor(
+                                descriptor,
+                                descriptorValue
+                            )
+                        } else {
+                            descriptor.value =
+                                descriptorValue
+                            gatt.writeDescriptor(descriptor)
+                        }
+                    }
+            } else {
+                error("Set ${characteristic.uuid} characteristic notification $enable failed!")
+            }
+            return success;
+        }
     }
 }

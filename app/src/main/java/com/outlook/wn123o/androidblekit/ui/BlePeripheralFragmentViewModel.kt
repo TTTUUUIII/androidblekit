@@ -17,7 +17,7 @@ class BlePeripheralFragmentViewModel: BaseViewModel(), BlePeripheralCallback {
     private var _connectState = MutableStateFlow(getString(R.string.str_disconnected))
     val connectState = _connectState.asStateFlow()
 
-    fun updateConnectState(newState: String) {
+    private fun updateConnectState(newState: String) {
         _connectState.update {
             newState
         }
@@ -28,7 +28,7 @@ class BlePeripheralFragmentViewModel: BaseViewModel(), BlePeripheralCallback {
         updateRemoteAddressState(bleAddress)
     }
 
-    override fun onMessage(bleAddress: String, bytes: ByteArray, offset: Int) {
+    override fun onMessage(address: String, bytes: ByteArray, offset: Int) {
         putMsg("${timeZone()}: ${String(bytes)}")
     }
 
@@ -42,7 +42,7 @@ class BlePeripheralFragmentViewModel: BaseViewModel(), BlePeripheralCallback {
 
     private fun writeBytes(bytes: ByteArray): Boolean {
         return if (isConnected()) {
-            blePeripheral.writeBytes(remoteAddressState.value, bytes)
+            blePeripheral.writeBytes(bytes)
         } else {
             false
         }

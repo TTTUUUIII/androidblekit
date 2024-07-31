@@ -6,26 +6,26 @@ import android.view.View
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.outlook.wn123o.androidblekit.R
-import com.outlook.wn123o.blekit.BleKitScope
+import com.outlook.wn123o.blekit.BleEnvironment
 import com.outlook.wn123o.blekit.common.BleDevice
-import com.outlook.wn123o.blekit.scanner.BleBaseScanAdapter
-import com.outlook.wn123o.blekit.scanner.BleScanner
+import com.outlook.wn123o.blekit.common.scanner.BleBaseScanAdapter
+import com.outlook.wn123o.blekit.common.scanner.BleScanner
 
 class BleScanFragmentViewModel: ViewModel() {
 
     val scanResultLiveData = MutableLiveData<BleDevice?>(null)
 
-    private val bleScanner = BleScanner()
     private val bleScanAdapter = BleScanCallbackAdapter()
+    private val bleScanner = BleScanner(bleScanAdapter)
     fun stopDiscover() = bleScanner.stopScan()
 
     val deviceNamePatternLiveData = MutableLiveData<String>(".*.*")
 
     private fun startDiscover() {
         val filter = ScanFilter.Builder()
-            .setServiceUuid(ParcelUuid(BleKitScope.getServiceUuid()))
+            .setServiceUuid(ParcelUuid(BleEnvironment.getAdvertiseUuid()))
             .build()
-        bleScanner.scanWithDuration(1000 * 5, bleScanAdapter, listOf(filter))
+        bleScanner.scanWithDuration(1000 * 5, listOf(filter))
     }
 
     fun onAction(view: View) {

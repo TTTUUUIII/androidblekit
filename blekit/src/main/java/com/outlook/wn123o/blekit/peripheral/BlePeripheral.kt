@@ -9,22 +9,23 @@ import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
 import android.os.ParcelUuid
-import com.outlook.wn123o.blekit.BleEnv
-import com.outlook.wn123o.blekit.common.mainScope
+import com.outlook.wn123o.blekit.BleEnvironment
+import com.outlook.wn123o.blekit.common.advertiser.BleAdvertiser
+import com.outlook.wn123o.blekit.common.error
 import com.outlook.wn123o.blekit.common.runAtDelayed
+import com.outlook.wn123o.blekit.common.runOnUiThread
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralApi
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralCallback
-import kotlinx.coroutines.launch
 import java.util.UUID
 
 @SuppressLint("MissingPermission")
 class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null): AdvertiseCallback(), BlePeripheralCallback, BlePeripheralApi {
-    private val mCtx = BleEnv.applicationContext
+    private val mCtx = BleEnvironment.applicationContext
     private val mAdapter: BluetoothAdapter
     private var mGattServer: BluetoothGattServer
     private val mGattCallback: BleGattServerCallbackImpl
-    private var mAdvertising = false
     private val mGattService: BluetoothGattService
+    private val mLeAdvertiser = BleAdvertiser(this)
 
     init {
         val bleManager = mCtx.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
@@ -38,9 +39,8 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
 
     override fun onStartSuccess(settingsInEffect: AdvertiseSettings?) {
         super.onStartSuccess(settingsInEffect)
-        mAdvertising = true
         val service = mGattServer
-            .getService(BleEnv.preferenceServiceUuid)
+            .getService(BleEnvironment.uuidForGattService)
         if (service == null) {
             mGattServer.addService(mGattService)
         }
@@ -53,16 +53,12 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
 
     private fun getGattService(): BluetoothGattService {
         val service = BluetoothGattService(
-            BleEnv.preferenceServiceUuid,
+            BleEnvironment.uuidForGattService,
             BluetoothGattService.SERVICE_TYPE_PRIMARY
         )
-        service.addCharacteristic(mGattCallback.getWritableCharacteristic())
-        service.addCharacteristic(mGattCallback.getNotifyCharacteristic())
+        mGattCallback.characteristicsForNotification.forEach(service::addCharacteristic)
+        service.addCharacteristic(mGattCallback.characteristicForWritable)
         return service
-    }
-
-    override fun writeBytes(bleAddress: String, bytes: ByteArray): Boolean {
-        return mGattCallback.writeBytes(bleAddress, bytes)
     }
 
     override fun startup(
@@ -73,7 +69,7 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
     ) {
         val advertiseDataBuilder = AdvertiseData.Builder()
             .setIncludeDeviceName(false)
-            .addServiceUuid(ParcelUuid(BleEnv.preferenceServiceUuid))
+            .addServiceUuid(ParcelUuid(BleEnvironment.uuidForAdvertise))
         if (manufacturerId != null && manufacturerData != null) {
             advertiseDataBuilder.addManufacturerData(manufacturerId, manufacturerData)
         }
@@ -83,67 +79,51 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
         startup(advertiseDataBuilder.build())
     }
 
-    override fun startup(advertiseData: AdvertiseData) = startAdvertising(advertiseData)
+    override fun startup(advertiseData: AdvertiseData) = mLeAdvertiser.startAdvertising(advertiseData)
 
     override fun shutdown() {
-        if (mAdvertising) stopAdvertising()
-        mGattCallback.disconnectAll()
+        if (mLeAdvertiser.isAdvertising()) {
+            mLeAdvertiser.stopAdvertising()
+        }
+        mGattCallback.disconnect()
         mGattServer.clearServices()
     }
 
-    override fun disconnect(bleAddress: String) {
-        mGattCallback
-            .disconnect(bleAddress)
-    }
+    override fun disconnect() = mGattCallback.disconnect()
 
-    override fun onMessage(bleAddress: String, bytes: ByteArray, offset: Int) {
-        mainScope()
-            .launch {
-                mExternCallback?.onMessage(bleAddress, bytes, offset)
-            }
+    override fun writeBytes(bytes: ByteArray): Boolean = mGattCallback.writeBytes(bytes)
+
+    override fun writeBytes(characteristic: UUID, bytes: ByteArray): Boolean = mGattCallback.writeBytes(characteristic, bytes)
+
+    override fun onMessage(
+        address: String,
+
+        characteristic: UUID,
+        bytes: ByteArray,
+        offset: Int
+    ) {
+        runOnUiThread {
+            mExternCallback?.onMessage(address, characteristic, bytes, offset)
+        }
     }
 
     override fun onConnected(bleAddress: String) {
         stopAdvertising()
-        mainScope()
-            .launch {
-                mExternCallback?.onConnected(bleAddress)
-            }
+        runOnUiThread {
+            mExternCallback?.onConnected(bleAddress)
+        }
         runAtDelayed(200L) {
-            mainScope()
-                .launch {
-                    mExternCallback?.onReadyToWrite(bleAddress)
-                }
+            mExternCallback?.onReadyToWrite(bleAddress)
         }
     }
 
     override fun onDisconnected(bleAddress: String) {
-        mainScope()
-            .launch {
-                mExternCallback?.onDisconnected(bleAddress)
-            }
-    }
-
-    private fun startAdvertising(advertiseData: AdvertiseData) {
-        if (!mAdvertising) {
-            mAdapter
-                .bluetoothLeAdvertiser
-                .startAdvertising(
-                    BleEnv.advertiseSettings,
-                    advertiseData,
-                    this
-                )
+        runOnUiThread {
+            mExternCallback?.onDisconnected(bleAddress)
         }
     }
 
-    private fun stopAdvertising() {
-        if (mAdvertising) {
-            mAdapter
-                .bluetoothLeAdvertiser
-                .stopAdvertising(this)
-            mAdvertising = false
-        }
-    }
+    private fun stopAdvertising() = mLeAdvertiser.stopAdvertising()
 
     override fun registerCallback(callback: BlePeripheralCallback) {
         mExternCallback = callback

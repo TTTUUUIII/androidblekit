@@ -1,5 +1,8 @@
 package com.outlook.wn123o.blekit.interfaces
 
+import android.bluetooth.BluetoothGattCharacteristic
+import java.util.UUID
+
 interface BleCallback {
 
     /**
@@ -16,11 +19,26 @@ interface BleCallback {
 
     /**
      * Received some data from target device.
-     * @param bleAddress String
+     * @param characteristic UUID
+     * @param address String
      * @param bytes ByteArray
      * @param offset Int
      */
-    fun onMessage(bleAddress: String, bytes: ByteArray, offset: Int)
+    fun onMessage(address: String, characteristic: UUID, bytes: ByteArray, offset: Int) {
+        onMessage(address, bytes, offset)
+    }
+
+    /**
+     * Deprecated
+     * @see onMessage(characteristic: UUID, bleAddress: String, bytes: ByteArray, offset: Int)
+     * @param address String
+     * @param bytes ByteArray
+     * @param offset Int
+     */
+    @Deprecated(
+        "Deprecated use onMessage(address: String, characteristic: UUID, bytes: ByteArray, offset: Int)"
+    )
+    fun onMessage(address: String, bytes: ByteArray, offset: Int) {}
 
     /**
      * Already disconnected.

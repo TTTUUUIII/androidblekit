@@ -1,4 +1,4 @@
-package com.outlook.wn123o.blekit.scanner
+package com.outlook.wn123o.blekit.common.scanner
 
 import android.annotation.SuppressLint
 import android.bluetooth.le.ScanCallback

@@ -11,5 +11,7 @@ interface BlePeripheralApi: BleApi<BlePeripheralCallback> {
         dataServiceUUID: UUID? = null,
         dataServiceData: ByteArray? = null)
     fun shutdown()
-    fun disconnect(bleAddress: String)
+    fun disconnect()
+    fun writeBytes(bytes: ByteArray): Boolean
+    fun writeBytes(characteristic: UUID, bytes: ByteArray): Boolean
 }

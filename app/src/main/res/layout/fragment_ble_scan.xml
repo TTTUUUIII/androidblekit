@@ -12,15 +12,15 @@
         android:orientation="vertical"
         android:paddingHorizontal="10dp"
         tools:context=".ui.BleScanFragment">
-        <LinearLayout
+        <com.google.android.material.textfield.TextInputLayout
+            android:hint="@string/str_filter_by_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-            <EditText
-                android:hint="@string/str_filter_by_name"
-                android:text="@={viewModel.deviceNamePatternLiveData}"
+            <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-        </LinearLayout>
+                android:layout_height="match_parent"
+                android:text="@={viewModel.deviceNamePatternLiveData}"/>
+        </com.google.android.material.textfield.TextInputLayout>
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"

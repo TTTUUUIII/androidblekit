@@ -61,8 +61,8 @@ afterEvaluate {
 dependencies {
 
     implementation(libs.core.ktx)
-    implementation(libs.android.appcompat)
-    implementation(libs.android.material)
+    compileOnly(libs.android.appcompat)
+    compileOnly(libs.android.material)
     testImplementation(libs.test.junit)
     androidTestImplementation(libs.test.ext)
     androidTestImplementation(libs.test.espresso)

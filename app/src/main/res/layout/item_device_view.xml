@@ -8,7 +8,7 @@
             type="BleDevice" />
     </data>
     <FrameLayout
-        android:paddingTop="5dp"
+        android:layout_marginTop="5dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <com.google.android.material.card.MaterialCardView
@@ -42,12 +42,16 @@
                     android:layout_width="70dp"
                     android:text="@{String.valueOf(bleDevice.rssi)}"
                     android:layout_height="wrap_content" />
-                <Button
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/connect_button"
+                    style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:cornerRadius = "5dp"
-                    android:text="@string/str_connect" />
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="@string/str_connect"
+                    app:cornerRadius="5dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
     </FrameLayout>

@@ -41,7 +41,7 @@ class BleCentralFragmentViewModel: BaseViewModel(), BleCentralCallback {
         updateRemoteAddressState(bleAddress)
     }
 
-    override fun onMessage(bleAddress: String, bytes: ByteArray, offset: Int) {
+    override fun onMessage(address: String, bytes: ByteArray, offset: Int) {
         putMsg("${timeZone()}: ${String(bytes)}")
     }
 

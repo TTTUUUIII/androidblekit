@@ -1,4 +1,4 @@
-package com.outlook.wn123o.blekit.scanner
+package com.outlook.wn123o.blekit.common.scanner
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothManager
@@ -6,70 +6,67 @@ import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.content.Context
-import com.outlook.wn123o.blekit.BleEnv
+import com.outlook.wn123o.blekit.BleEnvironment
 import com.outlook.wn123o.blekit.common.runAtDelayed
 
-class BleScanner: ScanCallback() {
+@SuppressLint("MissingPermission")
+class BleScanner(private val adapter: BleBaseScanAdapter): ScanCallback() {
 
     private val mScanHistory = mutableSetOf<String>()
     private val mLeScanner by lazy {
-        val bleManager = BleEnv.applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val bleManager = BleEnvironment.applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bleManager.adapter.bluetoothLeScanner
     }
 
-    private var mExternScanAdapter: BleBaseScanAdapter? = null
-
     private var mScanning = false
-    fun scanWithDuration(mills: Long, callback: BleBaseScanAdapter) = scanWithDuration(mills, callback, null)
+    fun scanWithDuration(mills: Long) = scanWithDuration(mills, null)
 
-    fun scanWithDuration(mills: Long, scanAdapter: BleBaseScanAdapter, filters: List<ScanFilter>?) {
+    fun scanWithDuration(mills: Long, filters: List<ScanFilter>?) {
         if (!mScanning) {
-            scan(scanAdapter, filters ?: listOf())
+            scan(filters ?: listOf())
             runAtDelayed(mills) {
                 stopScan()
             }
         }
     }
 
-    @SuppressLint("MissingPermission")
-    fun scan(scanAdapter: BleBaseScanAdapter, filters: List<ScanFilter>) {
-        mExternScanAdapter = scanAdapter
-        if (!mScanning) {
-                mLeScanner.startScan(filters, BleEnv.scanSettings, this)
+    
+    fun scan(filters: List<ScanFilter>) {
+        if (!isScanning()) {
+                mLeScanner.startScan(filters, BleEnvironment.scanSettings, this)
             mScanning = true
-            scanAdapter.onScanStart()
+            adapter.onScanStart()
         }
     }
 
-    @SuppressLint("MissingPermission")
+    
     fun stopScan() {
-        if (mScanning) {
+        if (isScanning()) {
                 mLeScanner.stopScan(this)
             mScanning = false
-            mExternScanAdapter?.onScanStop()
-            mExternScanAdapter = null
+            adapter.onScanStop()
             mScanHistory.clear()
         }
     }
 
     override fun onScanFailed(errorCode: Int) {
-        mExternScanAdapter?.onScanFailed(errorCode)
+        adapter.onScanFailed(errorCode)
     }
 
     override fun onScanResult(callbackType: Int, result: ScanResult?) {
         result?.let { scanResult ->
             val bleAddress = scanResult.device.address
             if (!mScanHistory.contains(bleAddress)) {
-                mExternScanAdapter?.onScanResult(callbackType, result)
+                adapter.onScanResult(callbackType, result)
             }
-            if (BleEnv.scanFeatureOnlyReportOnce) {
+            if (BleEnvironment.scanFeatureOnlyReportOnce) {
                 mScanHistory.add(bleAddress)
             }
         }
     }
 
     override fun onBatchScanResults(results: MutableList<ScanResult>?) {
-        mExternScanAdapter?.onBatchScanResults(results)
+        adapter.onBatchScanResults(results)
     }
 
     fun isScanning(): Boolean = mScanning

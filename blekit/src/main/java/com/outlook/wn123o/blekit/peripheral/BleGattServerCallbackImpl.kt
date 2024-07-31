@@ -9,19 +9,21 @@ import android.bluetooth.BluetoothGattServer
 import android.bluetooth.BluetoothGattServerCallback
 import android.bluetooth.BluetoothGattService
 import android.os.Build
-import com.outlook.wn123o.blekit.BleEnv
+import com.outlook.wn123o.blekit.BleEnvironment
 import com.outlook.wn123o.blekit.common.debug
 import com.outlook.wn123o.blekit.common.message
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralCallback
 import java.util.Arrays
+import java.util.UUID
 
+@SuppressLint("MissingPermission")
 internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
 
     lateinit var gattServer: BluetoothGattServer
     lateinit var callback: BlePeripheralCallback
 
-    private val mWriteCharacteristic = BluetoothGattCharacteristic(
-        BleEnv.preferenceWriteChaUuid,
+    val characteristicForWritable = BluetoothGattCharacteristic(
+        BleEnvironment.uuidForWrite,
         BluetoothGattCharacteristic.PROPERTY_WRITE
                /* or BluetoothGattCharacteristic.PROPERTY_READ
                 or BluetoothGattCharacteristic.PROPERTY_INDICATE*/,
@@ -29,32 +31,25 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
                 or*/ BluetoothGattCharacteristic.PERMISSION_WRITE
     )
 
-    private val mNotifyCharacteristic = BluetoothGattCharacteristic(
-        BleEnv.preferenceNotifyChaUuid,
-        BluetoothGattCharacteristic.PROPERTY_READ
-                or BluetoothGattCharacteristic.PROPERTY_NOTIFY,
-        BluetoothGattCharacteristic.PERMISSION_READ
-    ).apply {
-        addDescriptor(BleEnv.clientChaDescriptor)
-    }
+    val characteristicsForNotification by lazy { BleEnvironment.buildCharacteristicsForNotification() }
 
-    private val mConnections = mutableMapOf<String, BluetoothDevice>()
+    private var mConnection: BluetoothDevice? = null
 
-    @SuppressLint("MissingPermission")
+    
     override fun onConnectionStateChange(device: BluetoothDevice?, status: Int, newState: Int) {
         debug("onConnectionStateChange: {state=$status, newState=$newState}")
         when (newState) {
             BluetoothGatt.STATE_CONNECTED -> {
                 device?.let { bluetoothDevice ->
-                    mConnections[bluetoothDevice.address] = bluetoothDevice
                     gattServer.connect(bluetoothDevice, true)
                     callback.onConnected(bluetoothDevice.address)
+                    mConnection = bluetoothDevice
                 }
             }
 
             BluetoothGatt.STATE_DISCONNECTED -> {
                 device?.let { bluetoothDevice ->
-                    mConnections.remove(bluetoothDevice.address)
+                    mConnection = null
                     callback.onDisconnected(bluetoothDevice.address)
                 }
             }
@@ -64,10 +59,12 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
     }
 
     override fun onServiceAdded(status: Int, service: BluetoothGattService?) {
-        message("Gatt service added")
+        if (status == BluetoothGatt.GATT_SUCCESS) {
+            message("onServiceAdded: {uuid=${service!!.uuid}}")
+        }
     }
 
-    @SuppressLint("MissingPermission")
+    
     override fun onCharacteristicReadRequest(
         device: BluetoothDevice?,
         requestId: Int,
@@ -83,11 +80,11 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
         )
     }
 
-    @SuppressLint("MissingPermission")
+    
     override fun onCharacteristicWriteRequest(
         device: BluetoothDevice?,
         requestId: Int,
-        characteristic: BluetoothGattCharacteristic?,
+        characteristic: BluetoothGattCharacteristic,
         preparedWrite: Boolean,
         responseNeeded: Boolean,
         offset: Int,
@@ -96,10 +93,10 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
         if (responseNeeded) {
             gattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value)
         }
-        callback.onMessage(device!!.address, value!!, offset)
+        callback.onMessage(device!!.address, characteristic.uuid, value!!, offset)
     }
 
-    @SuppressLint("MissingPermission")
+    
     override fun onDescriptorReadRequest(
         device: BluetoothDevice?,
         requestId: Int,
@@ -115,7 +112,7 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
         )
     }
 
-    @SuppressLint("MissingPermission")
+    
     override fun onDescriptorWriteRequest(
         device: BluetoothDevice?,
         requestId: Int,
@@ -139,7 +136,7 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
         }
     }
 
-    @SuppressLint("MissingPermission")
+    
     override fun onExecuteWrite(device: BluetoothDevice?, requestId: Int, execute: Boolean) {
         debug("onExecuteWrite: { device=${device?.address}, requestId=$requestId, execute=$execute }")
     }
@@ -161,49 +158,46 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
 
     }
 
-    @SuppressLint("MissingPermission")
-    fun disconnect(bleAddress: String) {
-        mConnections
-            .remove(bleAddress)
-            ?.let {
-                gattServer.cancelConnection(it)
-            }
-    }
-
-    fun disconnectAll() {
-        mConnections.keys.forEach { bleAddress ->
-            disconnect(bleAddress)
+    
+    fun disconnect() {
+        if (mConnection != null) {
+            gattServer.cancelConnection(mConnection)
+            mConnection = null
         }
     }
 
-    @SuppressLint("MissingPermission")
-    fun writeBytes(bleAddress: String, bytes: ByteArray): Boolean {
-        mConnections[bleAddress]
-            ?.let { device ->
-                val characteristic = mNotifyCharacteristic
-                val indicate = characteristic
-                    .properties and BluetoothGattCharacteristic.PROPERTY_INDICATE == BluetoothGattCharacteristic.PROPERTY_INDICATE
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    gattServer.notifyCharacteristicChanged(
-                        device,
-                        characteristic,
-                        indicate,
-                        bytes
-                    )
-                } else {
-                    characteristic.value = bytes
-                    gattServer.notifyCharacteristicChanged(
-                        device,
-                        characteristic,
-                        indicate
-                    )
-                }
-                return true
-            }
-        return false
+    
+    fun writeBytes(bytes: ByteArray): Boolean {
+        if (characteristicsForNotification.isEmpty()) return false
+        return writeBytes(characteristicsForNotification.first(), bytes)
     }
 
-    fun getWritableCharacteristic() = mWriteCharacteristic
+    fun writeBytes(characteristicUuid: UUID, bytes: ByteArray): Boolean {
+        val characteristic =
+            characteristicsForNotification.find { it.uuid == characteristicUuid } ?: return false
+        return writeBytes(characteristic, bytes)
+    }
 
-    fun getNotifyCharacteristic() = mNotifyCharacteristic
+    
+    private fun writeBytes(characteristic: BluetoothGattCharacteristic, bytes: ByteArray): Boolean {
+        val device = mConnection ?: return false
+        val indicate = characteristic
+            .properties and BluetoothGattCharacteristic.PROPERTY_INDICATE == BluetoothGattCharacteristic.PROPERTY_INDICATE
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            gattServer.notifyCharacteristicChanged(
+                device,
+                characteristic,
+                indicate,
+                bytes
+            )
+        } else {
+            characteristic.value = bytes
+            gattServer.notifyCharacteristicChanged(
+                device,
+                characteristic,
+                indicate
+            )
+        }
+        return true
+    }
 }
