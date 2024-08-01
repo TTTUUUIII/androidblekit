@@ -62,7 +62,6 @@ dependencies {
 
     implementation(libs.core.ktx)
     compileOnly(libs.android.appcompat)
-    compileOnly(libs.android.material)
     testImplementation(libs.test.junit)
     androidTestImplementation(libs.test.ext)
     androidTestImplementation(libs.test.espresso)

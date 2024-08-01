@@ -7,9 +7,9 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.os.Build
 import com.outlook.wn123o.blekit.BleEnvironment
-import com.outlook.wn123o.blekit.common.debug
 import com.outlook.wn123o.blekit.common.error
 import com.outlook.wn123o.blekit.common.runOnUiThread
+import com.outlook.wn123o.blekit.common.warn
 import com.outlook.wn123o.blekit.interfaces.BleCentralApi
 import com.outlook.wn123o.blekit.interfaces.BleCentralCallback
 import com.outlook.wn123o.blekit.interfaces.ConnectionState
@@ -22,8 +22,11 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
     private val mConnections = mutableMapOf<String, BleGattCallbackImpl>()
     
     override fun connect(device: BluetoothDevice) {
-        debug("connect to ${device.address}")
-        mConnections[device.address] = BleGattCallbackImpl(mCtx, device, this)
+        if (mConnections[device.address] == null) {
+            mConnections[device.address] = BleGattCallbackImpl(mCtx, device, this)
+        } else {
+            warn("Already connected to ${device.address}!")
+        }
     }
 
     override fun onMessage(address: String, characteristic: UUID, bytes: ByteArray, offset: Int) {
@@ -58,6 +61,12 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
         }
         runOnUiThread {
             mExternCallback?.onError(error, address)
+        }
+    }
+
+    override fun onCharacteristicRegistered(characteristic: UUID, notify: Boolean) {
+        runOnUiThread {
+            mExternCallback?.onCharacteristicRegistered(characteristic, notify)
         }
     }
 

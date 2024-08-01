@@ -8,14 +8,14 @@ interface BleCallback {
      * Connect state changed.
      * @param state Int
      */
-    fun onConnectStateChanged(@ConnectionState state: Int, address: String)
+    fun onConnectionStateChanged(@ConnectionState state: Int, address: String)
 
     @Deprecated(
         "Deprecated use onConnectStateChanged(state: Int, address: String)"
     )
     /**
      * Deprecated
-     * @see onConnectStateChanged
+     * @see onConnectionStateChanged
      * Connected to target device.
      * @param bleAddress String
      */
@@ -23,7 +23,7 @@ interface BleCallback {
 
     /**
      * Deprecated
-     * @see onConnectStateChanged
+     * @see onConnectionStateChanged
      * Data can be sent safely.
      * @param bleAddress String
      */
@@ -56,7 +56,7 @@ interface BleCallback {
         "Deprecated use onConnectStateChanged(state: Int, address: String)"
     )
     /**
-     * @see onConnectStateChanged
+     * @see onConnectionStateChanged
      * Already disconnected.
      * @param bleAddress String
      */

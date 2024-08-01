@@ -21,7 +21,8 @@ annotation class ConnectionState {
             CONNECTING -> "CONNECTING"
             CONNECTED -> "CONNECTED"
             DISCONNECTING -> "DISCONNECTING"
-            else -> "DISCONNECTED"
+            DISCONNECTED -> "DISCONNECTED"
+            else -> "UNKNOWN"
         }
     }
 }

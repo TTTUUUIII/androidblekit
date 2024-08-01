@@ -34,7 +34,7 @@ internal class BleGattCallbackImpl(
 
     init {
         mRemote.connectGatt(context, false, this)
-        mCallback.onConnectStateChanged(ConnectionState.CONNECTING, mRemote.address)
+        mCallback.onConnectionStateChanged(ConnectionState.CONNECTING, mRemote.address)
     }
 
     override fun onPhyUpdate(gatt: BluetoothGatt?, txPhy: Int, rxPhy: Int, status: Int) {
@@ -46,12 +46,12 @@ internal class BleGattCallbackImpl(
     }
     
     override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-        debug("onConnectionStateChange: { state=$status, newState=$newState }")
+        debug("onConnectionStateChange: { state=${ConnectionState.string(status)}, newState=${ConnectionState.string(newState)} }")
         mState = newState
         when (newState) {
             BluetoothGatt.STATE_CONNECTED -> {
                 mGatt = gatt;
-                mCallback.onConnectStateChanged(ConnectionState.CONNECTED, gatt.device.address)
+                mCallback.onConnectionStateChanged(ConnectionState.CONNECTED, gatt.device.address)
                 gatt.discoverServices()
                 if (BleEnvironment.expectMtuSize >= 20) {
                     gatt.requestMtu(BleEnvironment.expectMtuSize)
@@ -61,7 +61,7 @@ internal class BleGattCallbackImpl(
                 if (waiting) {
                     mCallback.onError(BleCentral.ERR_CONNECT_FAILED, mRemote.address)
                 }
-                mCallback.onConnectStateChanged(ConnectionState.DISCONNECTED, gatt.device.address)
+                mCallback.onConnectionStateChanged(ConnectionState.DISCONNECTED, gatt.device.address)
                 mGatt = null
             }
             else -> {}
@@ -73,20 +73,22 @@ internal class BleGattCallbackImpl(
         if (status == BluetoothGatt.GATT_SUCCESS) {
             val bleAddress = gatt!!.device.address
             gatt.services.forEach { service ->
-                service.characteristics.forEach { characteristics ->
-                    if (BleEnvironment.bleGattService.isExistInNotification(characteristics)) {
-                        if (characteristics.hasProperty(BluetoothGattCharacteristic.PROPERTY_NOTIFY)) {
-                            BleCentral.setCharacteristicNotification(gatt, characteristics, true)
-                            message("Subscribed characteristics {uuid=${characteristics.uuid}}")
+                service.characteristics.forEach { characteristic ->
+                    if (BleEnvironment.bleGattService.isExistInNotification(characteristic)) {
+                        if (characteristic.hasProperty(BluetoothGattCharacteristic.PROPERTY_NOTIFY)) {
+                            BleCentral.setCharacteristicNotification(gatt, characteristic, true)
+                            mCallback.onCharacteristicRegistered(characteristic.uuid, true)
+                            debug("Registered characteristic {uuid=${characteristic.uuid}, type=notify}")
                         } else {
-                            warn("Unable subscribe characteristics {uuid=${characteristics.uuid}}, because it is not a notification type!")
+                            warn("Unable register characteristic {uuid=${characteristic.uuid}}, because it is not a notification type!")
                         }
-                    } else if (BleEnvironment.bleGattService.isExistInWritable(characteristics)) {
-                        if (characteristics.hasProperty(BluetoothGattCharacteristic.PROPERTY_WRITE) || characteristics.hasProperty(BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE)) {
-                            mWritableCharacteristics.add(characteristics)
-                            message("Writable characteristics {uuid=${characteristics.uuid}}")
+                    } else if (BleEnvironment.bleGattService.isExistInWritable(characteristic)) {
+                        if (characteristic.hasProperty(BluetoothGattCharacteristic.PROPERTY_WRITE) || characteristic.hasProperty(BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE)) {
+                            mWritableCharacteristics.add(characteristic)
+                            mCallback.onCharacteristicRegistered(characteristic.uuid, false)
+                            debug("Registered characteristic {uuid=${characteristic.uuid}, type=writable}")
                         } else {
-                            warn("Unable write characteristics {uuid=${characteristics.uuid}}, because it is not a writable type!")
+                            warn("Unable register characteristics {uuid=${characteristic.uuid}}, because it is not a writable type!")
                         }
                     }
                 }
@@ -163,7 +165,7 @@ internal class BleGattCallbackImpl(
     
     override fun close() {
         if (isConnected()) {
-            mCallback.onConnectStateChanged(ConnectionState.DISCONNECTING, mGatt!!.device.address)
+            mCallback.onConnectionStateChanged(ConnectionState.DISCONNECTING, mGatt!!.device.address)
             mGatt!!.disconnect()
             mGatt!!.close()
             mGatt = null

@@ -87,9 +87,9 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
         }
     }
 
-    override fun onConnectStateChanged(@ConnectionState state: Int, address: String) {
+    override fun onConnectionStateChanged(@ConnectionState state: Int, address: String) {
         runOnUiThread {
-            mExternCallback?.onConnectStateChanged(state, address)
+            mExternCallback?.onConnectionStateChanged(state, address)
             if (state == ConnectionState.CONNECTED) {
                 stopAdvertising()
                 mExternCallback?.onConnected(address)

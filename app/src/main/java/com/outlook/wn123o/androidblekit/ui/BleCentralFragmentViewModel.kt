@@ -71,13 +71,7 @@ class BleCentralFragmentViewModel: BaseViewModel(), BleCentralCallback {
         }
     }
 
-    fun connect(device: BluetoothDevice) {
-        if (!bleCentral.isConnected()) {
-            bleCentral.connect(device)
-        } else {
-            error(TAG, "Already connected to ${remoteAddressState.value}!")
-        }
-    }
+    fun connect(device: BluetoothDevice) = bleCentral.connect(device)
 
     fun disconnect() {
         if (bleCentral.isConnected()) {

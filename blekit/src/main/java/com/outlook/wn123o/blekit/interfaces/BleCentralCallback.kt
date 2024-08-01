@@ -11,4 +11,6 @@ interface BleCentralCallback: BleCallback {
      * @param error Int
      */
     fun onError(error: Int, address: String?) {}
+    
+    fun onCharacteristicRegistered(characteristic: UUID, notify: Boolean) {}
 }

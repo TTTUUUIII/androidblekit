@@ -51,19 +51,19 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
         mState = newState
         when (newState) {
             BluetoothGatt.STATE_CONNECTING -> {
-                callback.onConnectStateChanged(ConnectionState.CONNECTING, device.address)
+                callback.onConnectionStateChanged(ConnectionState.CONNECTING, device.address)
             }
             BluetoothGatt.STATE_CONNECTED -> {
                 mGattServer!!.connect(device, false)
-                callback.onConnectStateChanged(ConnectionState.CONNECTED, device.address)
+                callback.onConnectionStateChanged(ConnectionState.CONNECTED, device.address)
                 mConnection = device
             }
             BluetoothGatt.STATE_DISCONNECTING -> {
-                callback.onConnectStateChanged(ConnectionState.DISCONNECTING, device.address)
+                callback.onConnectionStateChanged(ConnectionState.DISCONNECTING, device.address)
             }
             BluetoothGatt.STATE_DISCONNECTED -> {
                 mConnection = null
-                callback.onConnectStateChanged(ConnectionState.DISCONNECTED, device.address)
+                callback.onConnectionStateChanged(ConnectionState.DISCONNECTED, device.address)
             }
             else -> {}
         }
