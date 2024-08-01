@@ -60,7 +60,7 @@ class BleCentralFragmentViewModel: BaseViewModel(), BleCentralCallback {
     }
 
     private fun writeBytes(bytes: ByteArray) {
-        if (!bleCentral.isConnected() || !bleCentral.writeBytes(remoteAddressState.value, bytes)) {
+        if (!bleCentral.writeBytes(remoteAddressState.value, bytes)) {
             toast(R.string.str_send_failure)
         }
     }
@@ -74,9 +74,5 @@ class BleCentralFragmentViewModel: BaseViewModel(), BleCentralCallback {
 
     fun connect(device: BluetoothDevice) = bleCentral.connect(device)
 
-    fun disconnect() {
-        if (bleCentral.isConnected()) {
-            bleCentral.disconnect(remoteAddressState.value)
-        }
-    }
+    fun disconnect() = bleCentral.disconnect(remoteAddressState.value)
 }

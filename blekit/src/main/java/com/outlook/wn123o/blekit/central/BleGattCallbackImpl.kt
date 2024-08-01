@@ -175,6 +175,7 @@ internal class BleGattCallbackImpl(
     fun isConnected(): Boolean = mState == ConnectionState.CONNECTED
 
     fun writeBytes(data: ByteArray, characteristicUuid: UUID? = null): Boolean {
+        if (!isConnected()) return false
         if (mWritableCharacteristics.isEmpty()) return false
         val characteristic = if (characteristicUuid == null) {
             mWritableCharacteristics.first()
