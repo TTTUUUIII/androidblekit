@@ -13,6 +13,7 @@ import com.outlook.wn123o.blekit.interfaces.ConnectionState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import java.util.UUID
 
 class BleCentralFragmentViewModel: BaseViewModel(), BleCentralCallback {
 
@@ -38,7 +39,7 @@ class BleCentralFragmentViewModel: BaseViewModel(), BleCentralCallback {
         }
     }
 
-    override fun onMessage(address: String, bytes: ByteArray, offset: Int) {
+    override fun onMessage(address: String, characteristic: UUID, bytes: ByteArray, offset: Int) {
         putMsg("${timeZone()}: ${String(bytes)}")
     }
 
