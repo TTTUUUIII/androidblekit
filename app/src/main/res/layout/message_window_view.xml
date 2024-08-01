@@ -1,21 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
     <data>
+
         <variable
             name="viewModel"
             type="com.outlook.wn123o.androidblekit.ui.BaseViewModel" />
     </data>
-    
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+    <LinearLayout
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <TextView
+        <ScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:text="@{viewModel.rxMsgState}"/>
+            android:layout_weight="1">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@{viewModel.rxMsgState}" />
+        </ScrollView>
+
         <LinearLayout
             android:id="@+id/line2"
             android:layout_width="match_parent"
@@ -24,11 +31,15 @@
             <EditText
                 android:layout_width="0dp"
                 android:layout_weight="1"
+                android:autofillHints=""
                 android:hint="@string/str_input_msg"
+                android:inputType="text"
                 android:text="@={viewModel.txMsg}"
                 android:layout_height="wrap_content" />
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/send_msg_button"
+                app:icon="@drawable/ic_arrow_outward"
+                app:iconGravity="textEnd"
                 android:onClick="@{viewModel::onAction}"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

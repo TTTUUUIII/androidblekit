@@ -16,6 +16,7 @@ import com.outlook.wn123o.blekit.common.message
 import com.outlook.wn123o.blekit.common.runAtDelayed
 import com.outlook.wn123o.blekit.common.warn
 import com.outlook.wn123o.blekit.interfaces.BleCentralCallback
+import com.outlook.wn123o.blekit.interfaces.ConnectionState
 import java.io.Closeable
 import java.util.UUID
 
@@ -29,9 +30,11 @@ internal class BleGattCallbackImpl(
     private var mGatt: BluetoothGatt? = null
     private val mWritableCharacteristics = mutableListOf<BluetoothGattCharacteristic>()
     private var waiting = true
+    private var mState = ConnectionState.DISCONNECTED
 
     init {
         mRemote.connectGatt(context, false, this)
+        mCallback.onConnectStateChanged(ConnectionState.CONNECTING, mRemote.address)
     }
 
     override fun onPhyUpdate(gatt: BluetoothGatt?, txPhy: Int, rxPhy: Int, status: Int) {
@@ -41,29 +44,25 @@ internal class BleGattCallbackImpl(
     override fun onPhyRead(gatt: BluetoothGatt?, txPhy: Int, rxPhy: Int, status: Int) {
         super.onPhyRead(gatt, txPhy, rxPhy, status)
     }
-
     
-    override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
+    override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
         debug("onConnectionStateChange: { state=$status, newState=$newState }")
+        mState = newState
         when (newState) {
             BluetoothGatt.STATE_CONNECTED -> {
-                gatt?.let {
-                    mGatt = gatt
-                    mCallback.onConnected(mRemote.address)
-                    it.discoverServices()
-                    if (BleEnvironment.expectMtuSize >= 20) {
-                        it.requestMtu(BleEnvironment.expectMtuSize)
-                    }
+                mGatt = gatt;
+                mCallback.onConnectStateChanged(ConnectionState.CONNECTED, gatt.device.address)
+                gatt.discoverServices()
+                if (BleEnvironment.expectMtuSize >= 20) {
+                    gatt.requestMtu(BleEnvironment.expectMtuSize)
                 }
             }
-
             BluetoothGatt.STATE_DISCONNECTED -> {
                 if (waiting) {
                     mCallback.onError(BleCentral.ERR_CONNECT_FAILED, mRemote.address)
-                } else {
-                    mCallback.onDisconnected(mRemote.address)
-                    mGatt = null
                 }
+                mCallback.onConnectStateChanged(ConnectionState.DISCONNECTED, gatt.device.address)
+                mGatt = null
             }
             else -> {}
         }
@@ -161,16 +160,18 @@ internal class BleGattCallbackImpl(
             mCallback.onMtuChanged(gatt!!.device.address, mtu)
         }
     }
-
     
     override fun close() {
-        mGatt?.let { gatt ->
-            gatt.disconnect()
-            gatt.close()
+        if (isConnected()) {
+            mCallback.onConnectStateChanged(ConnectionState.DISCONNECTING, mGatt!!.device.address)
+            mGatt!!.disconnect()
+            mGatt!!.close()
             mGatt = null
         }
     }
-    
+
+    fun isConnected(): Boolean = mState == ConnectionState.CONNECTED
+
     fun writeBytes(data: ByteArray, characteristicUuid: UUID? = null): Boolean {
         if (mWritableCharacteristics.isEmpty()) return false
         val characteristic = if (characteristicUuid == null) {

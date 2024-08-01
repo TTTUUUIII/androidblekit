@@ -15,6 +15,7 @@ import com.outlook.wn123o.blekit.BleEnvironment
 import com.outlook.wn123o.blekit.common.debug
 import com.outlook.wn123o.blekit.common.message
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralCallback
+import com.outlook.wn123o.blekit.interfaces.ConnectionState
 import java.util.UUID
 
 @SuppressLint("MissingPermission")
@@ -26,6 +27,7 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
     private val mCharacteristicsForNotification by lazy { BleEnvironment.bleGattService.characteristicsForNotification }
 
     private var mConnection: BluetoothDevice? = null
+    private var mState = ConnectionState.DISCONNECTED
 
     init { prepareGatt() }
 
@@ -44,24 +46,25 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
         mGattServer = null
     }
     
-    override fun onConnectionStateChange(device: BluetoothDevice?, status: Int, newState: Int) {
+    override fun onConnectionStateChange(device: BluetoothDevice, status: Int, newState: Int) {
         debug("onConnectionStateChange: {state=$status, newState=$newState}")
+        mState = newState
         when (newState) {
+            BluetoothGatt.STATE_CONNECTING -> {
+                callback.onConnectStateChanged(ConnectionState.CONNECTING, device.address)
+            }
             BluetoothGatt.STATE_CONNECTED -> {
-                device?.let { bluetoothDevice ->
-                    mGattServer!!.connect(bluetoothDevice, false)
-                    callback.onConnected(bluetoothDevice.address)
-                    mConnection = bluetoothDevice
-                }
+                mGattServer!!.connect(device, false)
+                callback.onConnectStateChanged(ConnectionState.CONNECTED, device.address)
+                mConnection = device
             }
-
+            BluetoothGatt.STATE_DISCONNECTING -> {
+                callback.onConnectStateChanged(ConnectionState.DISCONNECTING, device.address)
+            }
             BluetoothGatt.STATE_DISCONNECTED -> {
-                device?.let { bluetoothDevice ->
-                    mConnection = null
-                    callback.onDisconnected(bluetoothDevice.address)
-                }
+                mConnection = null
+                callback.onConnectStateChanged(ConnectionState.DISCONNECTED, device.address)
             }
-
             else -> {}
         }
     }
@@ -163,7 +166,14 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
 
     }
 
-    
+    fun isConnected(address: String?): Boolean {
+        return if (address == null) {
+            mState == ConnectionState.CONNECTED
+        } else {
+            mState == ConnectionState.CONNECTED && address == mConnection!!.address
+        }
+    }
+
     fun disconnect() {
         if (mConnection != null) {
             mGattServer?.cancelConnection(mConnection)

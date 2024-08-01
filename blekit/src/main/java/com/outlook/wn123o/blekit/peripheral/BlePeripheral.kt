@@ -1,8 +1,6 @@
 package com.outlook.wn123o.blekit.peripheral
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothGattServer
-import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.AdvertiseCallback
 import android.bluetooth.le.AdvertiseData
@@ -11,12 +9,12 @@ import android.content.Context
 import android.os.ParcelUuid
 import com.outlook.wn123o.blekit.BleEnvironment
 import com.outlook.wn123o.blekit.common.advertiser.BleAdvertiser
-import com.outlook.wn123o.blekit.common.debug
 import com.outlook.wn123o.blekit.common.error
 import com.outlook.wn123o.blekit.common.runAtDelayed
 import com.outlook.wn123o.blekit.common.runOnUiThread
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralApi
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralCallback
+import com.outlook.wn123o.blekit.interfaces.ConnectionState
 import java.util.UUID
 
 @SuppressLint("MissingPermission")
@@ -89,19 +87,18 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
         }
     }
 
-    override fun onConnected(bleAddress: String) {
-        stopAdvertising()
+    override fun onConnectStateChanged(@ConnectionState state: Int, address: String) {
         runOnUiThread {
-            mExternCallback?.onConnected(bleAddress)
-        }
-        runAtDelayed(200L) {
-            mExternCallback?.onReadyToWrite(bleAddress)
-        }
-    }
-
-    override fun onDisconnected(bleAddress: String) {
-        runOnUiThread {
-            mExternCallback?.onDisconnected(bleAddress)
+            mExternCallback?.onConnectStateChanged(state, address)
+            if (state == ConnectionState.CONNECTED) {
+                stopAdvertising()
+                mExternCallback?.onConnected(address)
+                runAtDelayed(200L) {
+                    mExternCallback?.onReadyToWrite(address)
+                }
+            } else if (state == ConnectionState.DISCONNECTED) {
+                mExternCallback?.onDisconnected(address)
+            }
         }
     }
 
@@ -114,6 +111,8 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
     override fun unregisterCallback() {
         mExternCallback = null
     }
+
+    override fun isConnected(address: String?): Boolean = mGattCallback.isConnected(address)
 
     companion object {
         const val ERR_ADVERTISE_FAILED = -1

@@ -5,6 +5,7 @@ import com.outlook.wn123o.androidblekit.R
 import com.outlook.wn123o.androidblekit.common.getString
 import com.outlook.wn123o.androidblekit.common.timeZone
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralCallback
+import com.outlook.wn123o.blekit.interfaces.ConnectionState
 import com.outlook.wn123o.blekit.peripheral.BlePeripheral
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,19 +24,8 @@ class BlePeripheralFragmentViewModel: BaseViewModel(), BlePeripheralCallback {
         }
     }
 
-    override fun onConnected(bleAddress: String) {
-        updateConnectState(getString(R.string.str_connected))
-        updateRemoteAddressState(bleAddress)
-    }
-
     override fun onMessage(address: String, bytes: ByteArray, offset: Int) {
         putMsg("${timeZone()}: ${String(bytes)}")
-    }
-
-    override fun onDisconnected(bleAddress: String) {
-        updateConnectState(getString(R.string.str_disconnected))
-        updateRemoteAddressState("")
-//        blePeripheral.startup()
     }
 
     override fun onError(error: Int) {
@@ -44,13 +34,14 @@ class BlePeripheralFragmentViewModel: BaseViewModel(), BlePeripheralCallback {
         }
     }
 
-    private fun isConnected() = remoteAddressState.value.isNotEmpty()
+    override fun onConnectStateChanged(state: Int, address: String) {
+        updateConnectState(ConnectionState.string(state))
+        updateRemoteAddressState(if (state == ConnectionState.DISCONNECTED) "" else address)
+    }
 
-    private fun writeBytes(bytes: ByteArray): Boolean {
-        return if (isConnected()) {
-            blePeripheral.writeBytes(bytes)
-        } else {
-            false
+    private fun writeBytes(bytes: ByteArray) {
+        if (!blePeripheral.isConnected() || !blePeripheral.writeBytes(bytes)) {
+            toast(R.string.str_send_failure)
         }
     }
 

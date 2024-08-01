@@ -9,6 +9,7 @@ import com.outlook.wn123o.androidblekit.common.requireApplicationContext
 import com.outlook.wn123o.androidblekit.common.timeZone
 import com.outlook.wn123o.blekit.central.BleCentral
 import com.outlook.wn123o.blekit.interfaces.BleCentralCallback
+import com.outlook.wn123o.blekit.interfaces.ConnectionState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -37,18 +38,8 @@ class BleCentralFragmentViewModel: BaseViewModel(), BleCentralCallback {
         }
     }
 
-    override fun onConnected(bleAddress: String) {
-        updateConnectState(getString(R.string.str_connected))
-        updateRemoteAddressState(bleAddress)
-    }
-
     override fun onMessage(address: String, bytes: ByteArray, offset: Int) {
         putMsg("${timeZone()}: ${String(bytes)}")
-    }
-
-    override fun onDisconnected(bleAddress: String) {
-        updateConnectState(getString(R.string.str_disconnected))
-        updateRemoteAddressState("")
     }
 
     override fun onReadRemoteRssi(bleAddress: String, rssi: Int) {
@@ -62,25 +53,26 @@ class BleCentralFragmentViewModel: BaseViewModel(), BleCentralCallback {
         }
     }
 
-    private fun isConnected() = remoteAddressState.value.isNotEmpty()
+    override fun onConnectStateChanged(state: Int, address: String) {
+        updateConnectState(ConnectionState.string(state))
+        updateRemoteAddressState(if (state == ConnectionState.DISCONNECTED) "" else address)
+    }
 
-    private fun writeBytes(bytes: ByteArray): Boolean {
-        return if (isConnected()) {
-            bleCentral.writeBytes(remoteAddressState.value, bytes)
-        } else {
-            false
+    private fun writeBytes(bytes: ByteArray) {
+        if (!bleCentral.isConnected() || !bleCentral.writeBytes(remoteAddressState.value, bytes)) {
+            toast(R.string.str_send_failure)
         }
     }
 
     override fun onAction(view: View) {
         when(view.id) {
             R.id.send_msg_button -> if (txMsg.isNotEmpty()) writeBytes(txMsg.encodeToByteArray())
-            R.id.refresh_rssi_button -> if (isConnected()) bleCentral.readRemoteRssi(remoteAddressState.value)
+            R.id.refresh_rssi_button -> if (bleCentral.isConnected(null)) bleCentral.readRemoteRssi(remoteAddressState.value)
         }
     }
 
     fun connect(device: BluetoothDevice) {
-        if (!isConnected()) {
+        if (!bleCentral.isConnected()) {
             bleCentral.connect(device)
         } else {
             error(TAG, "Already connected to ${remoteAddressState.value}!")
@@ -88,7 +80,7 @@ class BleCentralFragmentViewModel: BaseViewModel(), BleCentralCallback {
     }
 
     fun disconnect() {
-        if (isConnected()) {
+        if (bleCentral.isConnected()) {
             bleCentral.disconnect(remoteAddressState.value)
         }
     }

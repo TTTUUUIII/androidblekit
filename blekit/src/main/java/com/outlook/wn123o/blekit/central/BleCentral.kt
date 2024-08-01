@@ -12,6 +12,7 @@ import com.outlook.wn123o.blekit.common.error
 import com.outlook.wn123o.blekit.common.runOnUiThread
 import com.outlook.wn123o.blekit.interfaces.BleCentralApi
 import com.outlook.wn123o.blekit.interfaces.BleCentralCallback
+import com.outlook.wn123o.blekit.interfaces.ConnectionState
 import java.util.UUID
 
 @SuppressLint("MissingPermission")
@@ -25,23 +26,10 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
         mConnections[device.address] = BleGattCallbackImpl(mCtx, device, this)
     }
 
-    override fun onConnected(bleAddress: String) {
-        runOnUiThread {
-            mExternCallback?.onConnected(bleAddress)
-        }
-    }
-
     override fun onMessage(address: String, characteristic: UUID, bytes: ByteArray, offset: Int) {
         super.onMessage(address, characteristic, bytes, offset)
         runOnUiThread {
             mExternCallback?.onMessage(address, characteristic, bytes, offset)
-        }
-    }
-
-    override fun onDisconnected(bleAddress: String) {
-        mConnections.remove(bleAddress)
-        runOnUiThread {
-            mExternCallback?.onDisconnected(bleAddress)
         }
     }
 
@@ -70,6 +58,18 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
         }
         runOnUiThread {
             mExternCallback?.onError(error, address)
+        }
+    }
+
+    override fun onConnectStateChanged(@ConnectionState state: Int, address: String) {
+        runOnUiThread {
+            mExternCallback?.onConnectStateChanged(state, address)
+            if (state == ConnectionState.CONNECTED) {
+                mExternCallback?.onConnected(address)
+            } else if (state == ConnectionState.DISCONNECTED) {
+                mConnections.remove(address)
+                mExternCallback?.onDisconnected(address)
+            }
         }
     }
 
@@ -102,6 +102,16 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
 
     override fun unregisterCallback() {
         mExternCallback = null
+    }
+
+    override fun isConnected(address: String?): Boolean {
+        if (address == null) {
+            if (mConnections.isEmpty()) return false
+            return mConnections.values.first().isConnected()
+        } else {
+            val impl = mConnections[address] ?: return false
+            return impl.isConnected()
+        }
     }
 
     override fun readRemoteRssi(bleAddress: String): Boolean {

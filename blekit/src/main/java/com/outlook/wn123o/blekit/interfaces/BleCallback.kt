@@ -5,12 +5,25 @@ import java.util.UUID
 interface BleCallback {
 
     /**
+     * Connect state changed.
+     * @param state Int
+     */
+    fun onConnectStateChanged(@ConnectionState state: Int, address: String)
+
+    @Deprecated(
+        "Deprecated use onConnectStateChanged(state: Int, address: String)"
+    )
+    /**
+     * Deprecated
+     * @see onConnectStateChanged
      * Connected to target device.
      * @param bleAddress String
      */
-    fun onConnected(bleAddress: String)
+    fun onConnected(bleAddress: String, ) {}
 
     /**
+     * Deprecated
+     * @see onConnectStateChanged
      * Data can be sent safely.
      * @param bleAddress String
      */
@@ -39,11 +52,15 @@ interface BleCallback {
     )
     fun onMessage(address: String, bytes: ByteArray, offset: Int) {}
 
+    @Deprecated(
+        "Deprecated use onConnectStateChanged(state: Int, address: String)"
+    )
     /**
+     * @see onConnectStateChanged
      * Already disconnected.
      * @param bleAddress String
      */
-    fun onDisconnected(bleAddress: String)
+    fun onDisconnected(bleAddress: String) {}
 
     fun onMtuChanged(bleAddress: String, mtu: Int) {}
 }
