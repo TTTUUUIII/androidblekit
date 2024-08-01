@@ -70,9 +70,9 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
         }
     }
 
-    override fun onConnectStateChanged(@ConnectionState state: Int, address: String) {
+    override fun onConnectionStateChanged(@ConnectionState state: Int, address: String) {
         runOnUiThread {
-            mExternCallback?.onConnectStateChanged(state, address)
+            mExternCallback?.onConnectionStateChanged(state, address)
             if (state == ConnectionState.CONNECTED) {
                 mExternCallback?.onConnected(address)
             } else if (state == ConnectionState.DISCONNECTED) {

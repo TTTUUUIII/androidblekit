@@ -34,7 +34,7 @@ class BlePeripheralFragmentViewModel: BaseViewModel(), BlePeripheralCallback {
         }
     }
 
-    override fun onConnectStateChanged(state: Int, address: String) {
+    override fun onConnectionStateChanged(state: Int, address: String) {
         updateConnectState(ConnectionState.string(state))
         updateRemoteAddressState(if (state == ConnectionState.DISCONNECTED) "" else address)
     }
