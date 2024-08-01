@@ -3,9 +3,6 @@ package com.outlook.wn123o.androidblekit.ui
 import android.bluetooth.BluetoothDevice
 import android.view.View
 import com.outlook.wn123o.androidblekit.R
-import com.outlook.wn123o.androidblekit.common.error
-import com.outlook.wn123o.androidblekit.common.getString
-import com.outlook.wn123o.androidblekit.common.requireApplicationContext
 import com.outlook.wn123o.androidblekit.common.timeZone
 import com.outlook.wn123o.blekit.central.BleCentral
 import com.outlook.wn123o.blekit.interfaces.BleCentralCallback
