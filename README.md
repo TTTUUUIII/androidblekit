@@ -21,7 +21,7 @@ build.gradle.kts
 
 ```kotlin
 dependencies {
-    implementation("com.github.TTTUUUIII:androidblekit:2.3.3-alpha")
+    implementation("com.github.TTTUUUIII:androidblekit:2.3.4-alpha")
     ...
 }
 ```
