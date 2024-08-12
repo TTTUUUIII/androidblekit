@@ -1,15 +1,12 @@
 package com.outlook.wn123o.blekit.common
 
 import android.bluetooth.BluetoothGattCharacteristic
-import android.os.SystemClock
+import android.os.Handler
+import android.os.Looper
 import com.outlook.wn123o.blekit.BleEnvironment.LOG_TAG
 import android.util.Log
 import com.outlook.wn123o.blekit.BleEnvironment
 import com.outlook.wn123o.blekit.util.BleKitUtils
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.UUID
 
 internal fun <T> T.debug(msg: String) {
@@ -37,19 +34,14 @@ internal fun <T> T.message(msg: String) {
 }
 
 internal fun <T> T.runAtDelayed(mill: Long, action: Runnable) {
-    globalScope.launch(Dispatchers.IO) {
-        SystemClock.sleep(mill)
-        withContext(Dispatchers.Main) {
-            action.run()
-        }
-    }
+    handler.postDelayed(action, mill)
 }
 
 internal fun <T> T.runOnUiThread(action: Runnable) {
-    action.run()
+    handler.post(action)
 }
 
-private val globalScope = CoroutineScope(Dispatchers.Main)
+private val handler = Handler(Looper.getMainLooper())
 
 internal fun BluetoothGattCharacteristic.hasProperty(property: Int): Boolean = properties and property == property
 
