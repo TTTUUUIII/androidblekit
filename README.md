@@ -21,7 +21,7 @@ build.gradle.kts
 
 ```kotlin
 dependencies {
-    implementation("com.github.TTTUUUIII:androidblekit:2.2.3-alpha")
+    implementation("com.github.TTTUUUIII:androidblekit:2.3.3-alpha")
     ...
 }
 ```
@@ -48,21 +48,21 @@ class App: Application() {
 **As a bluetooth central**
 
 ```kotlin
-class BleCentralFragmentViewModel: BaseViewModel(), BleCentralCallback {
-    private val bleCentral = BleCentral(this)
+class BleCentralFragmentViewModel: BaseViewModel() {
+    private val bleCentral = BleCentral(object: BleCentralCallback() {
+        override fun onMessage(address: String, characteristic: UUID, bytes: ByteArray, offset: Int) {
+            /*Message received*/
+        }
 
-    override fun onMessage(address: String, characteristic: UUID, bytes: ByteArray, offset: Int) {
-        /*Message received*/
-    }
+        override fun onError(error: Int, address: String?) {
+            super.onError(error, address)
+            /*Some error happened*/
+        }
 
-    override fun onError(error: Int, address: String?) {
-        super.onError(error, address)
-        /*Some error happened*/
-    }
-
-    override fun onConnectionStateChanged(state: Int, address: String) {
-        /*Connection state chanaged*/
-    }
+        override fun onConnectionStateChanged(state: Int, address: String) {
+            /*Connection state chanaged*/
+        }
+    })
 
     /**
      * Send message
@@ -89,21 +89,21 @@ class BleCentralFragmentViewModel: BaseViewModel(), BleCentralCallback {
 
 ```kotlin
 
-class BlePeripheralFragmentViewModel: BaseViewModel(), BlePeripheralCallback {
+class BlePeripheralFragmentViewModel: BaseViewModel() {
 
-    private val blePeripheral = BlePeripheral(this)
+    private val blePeripheral = BlePeripheral(object: BlePeripheralCallback(){
+        override fun onMessage(address: String, characteristic: UUID, bytes: ByteArray, offset: Int) {
+            /*Message received.*/
+        }
 
-    override fun onMessage(address: String, characteristic: UUID, bytes: ByteArray, offset: Int) {
-        /*Message received.*/
-    }
+        override fun onError(error: Int) {
+            /*Some error happened.*/
+        }
 
-    override fun onError(error: Int) {
-        /*Some error happened.*/
-    }
-
-    override fun onConnectionStateChanged(state: Int, address: String) {
-        /*Connection state changed.*/
-    }
+        override fun onConnectionStateChanged(state: Int, address: String) {
+            /*Connection state changed.*/
+        }
+    })
 
     /**
      * Send message
