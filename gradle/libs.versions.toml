@@ -4,7 +4,7 @@ compileSdk = "34"
 targetSdk = "34"
 minSdk = "24"
 
-versionName = "2.3.4-alpha"
+versionName = "2.3.5-alpha"
 
 # plugins
 
