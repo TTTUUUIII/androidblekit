@@ -16,6 +16,7 @@ class App: Application() {
         options.leScanMode = ScanSettings.SCAN_MODE_BALANCED
         options.leAdvertiseMode = AdvertiseSettings.ADVERTISE_MODE_BALANCED
         options.logLevel = Log.DEBUG
+        options.leAdvertiseFeatureIncludeDeviceName = true
         BleEnvironment.initialize(this, options)
         sGlobalContextRef = WeakReference(this)
     }

@@ -48,7 +48,9 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
         dataServiceData: ByteArray?
     ) {
         val advertiseDataBuilder = AdvertiseData.Builder()
-            .setIncludeDeviceName(false)
+            .setIncludeDeviceName(
+                BleEnvironment.advertiseFeatureIncludeDeviceName
+            )
             .addServiceUuid(ParcelUuid(BleEnvironment.uuidForAdvertise))
         if (manufacturerId != null && manufacturerData != null) {
             advertiseDataBuilder.addManufacturerData(manufacturerId, manufacturerData)

@@ -45,4 +45,4 @@ private val handler = Handler(Looper.getMainLooper())
 
 internal fun BluetoothGattCharacteristic.hasProperty(property: Int): Boolean = properties and property == property
 
-internal fun ble16BitUuid(v: Long): UUID = BleKitUtils.ble16BitUuid(v)
+internal fun ble16BitUuid(v: Int): UUID = BleKitUtils.ble16BitUuid(v)

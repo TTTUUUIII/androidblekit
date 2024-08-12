@@ -17,6 +17,7 @@ object BleEnvironment {
     internal lateinit var applicationContext: Context
 
     internal lateinit var advertiseSettings: AdvertiseSettings
+    internal var advertiseFeatureIncludeDeviceName: Boolean = false
     internal lateinit var scanSettings: ScanSettings
     internal var scanFeatureOnlyReportOnce: Boolean = true
 
@@ -50,6 +51,7 @@ object BleEnvironment {
             .setConnectable(true)
             .setAdvertiseMode(options.leAdvertiseMode)
             .build()
+        advertiseFeatureIncludeDeviceName = options.leAdvertiseFeatureIncludeDeviceName
         scanSettings = ScanSettings
             .Builder()
             .setScanMode(options.leScanMode)
