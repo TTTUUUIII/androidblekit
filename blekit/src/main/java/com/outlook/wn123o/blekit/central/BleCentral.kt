@@ -11,12 +11,12 @@ import com.outlook.wn123o.blekit.common.error
 import com.outlook.wn123o.blekit.common.runOnUiThread
 import com.outlook.wn123o.blekit.common.warn
 import com.outlook.wn123o.blekit.interfaces.BleCentralApi
-import com.outlook.wn123o.blekit.interfaces.BleCentralCallback
+import com.outlook.wn123o.blekit.interfaces.BleCentralEventListener
 import com.outlook.wn123o.blekit.interfaces.ConnectionState
 import java.util.UUID
 
 @SuppressLint("MissingPermission")
-class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCentralCallback, BleCentralApi {
+class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCentralEventListener, BleCentralApi {
     private val mCtx = BleEnvironment.applicationContext
 
     private val mConnections = mutableMapOf<String, BleGattCallbackImpl>()

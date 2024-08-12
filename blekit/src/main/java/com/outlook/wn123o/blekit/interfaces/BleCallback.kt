@@ -19,7 +19,9 @@ interface BleCallback {
      * Connected to target device.
      * @param bleAddress String
      */
-    fun onConnected(bleAddress: String, ) {}
+    fun onConnected(bleAddress: String) {
+
+    }
 
     /**
      * Deprecated

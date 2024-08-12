@@ -12,10 +12,9 @@ import com.outlook.wn123o.blekit.BleEnvironment
 import com.outlook.wn123o.blekit.common.debug
 import com.outlook.wn123o.blekit.common.error
 import com.outlook.wn123o.blekit.common.hasProperty
-import com.outlook.wn123o.blekit.common.message
 import com.outlook.wn123o.blekit.common.runAtDelayed
 import com.outlook.wn123o.blekit.common.warn
-import com.outlook.wn123o.blekit.interfaces.BleCentralCallback
+import com.outlook.wn123o.blekit.interfaces.BleCentralEventListener
 import com.outlook.wn123o.blekit.interfaces.ConnectionState
 import java.io.Closeable
 import java.util.UUID
@@ -24,7 +23,7 @@ import java.util.UUID
 internal class BleGattCallbackImpl(
     context: Context,
     private val mRemote: BluetoothDevice,
-    private val mCallback: BleCentralCallback
+    private val mCallback: BleCentralEventListener
 ) : BluetoothGattCallback(), Closeable {
 
     private var mGatt: BluetoothGatt? = null

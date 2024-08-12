@@ -14,7 +14,7 @@ import android.os.Build
 import com.outlook.wn123o.blekit.BleEnvironment
 import com.outlook.wn123o.blekit.common.debug
 import com.outlook.wn123o.blekit.common.message
-import com.outlook.wn123o.blekit.interfaces.BlePeripheralCallback
+import com.outlook.wn123o.blekit.interfaces.BlePeripheralEventListener
 import com.outlook.wn123o.blekit.interfaces.ConnectionState
 import java.util.UUID
 
@@ -22,7 +22,7 @@ import java.util.UUID
 internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
 
     private var mGattServer: BluetoothGattServer? = null
-    lateinit var callback: BlePeripheralCallback
+    lateinit var callback: BlePeripheralEventListener
 
     private val mCharacteristicsForNotification by lazy { BleEnvironment.bleGattService.characteristicsForNotification }
 

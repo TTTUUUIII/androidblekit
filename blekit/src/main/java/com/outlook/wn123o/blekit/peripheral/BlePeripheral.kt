@@ -13,12 +13,12 @@ import com.outlook.wn123o.blekit.common.error
 import com.outlook.wn123o.blekit.common.runAtDelayed
 import com.outlook.wn123o.blekit.common.runOnUiThread
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralApi
-import com.outlook.wn123o.blekit.interfaces.BlePeripheralCallback
+import com.outlook.wn123o.blekit.interfaces.BlePeripheralEventListener
 import com.outlook.wn123o.blekit.interfaces.ConnectionState
 import java.util.UUID
 
 @SuppressLint("MissingPermission")
-class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null): AdvertiseCallback(), BlePeripheralCallback, BlePeripheralApi {
+class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null): AdvertiseCallback(), BlePeripheralEventListener, BlePeripheralApi {
     private val mCtx = BleEnvironment.applicationContext
     private val mAdapter: BluetoothAdapter
 
@@ -58,6 +58,8 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
         }
         startup(advertiseDataBuilder.build())
     }
+
+    override fun startup() = startup(null, null, null, null)
 
     override fun startup(advertiseData: AdvertiseData) = mLeAdvertiser.startAdvertising(advertiseData)
 

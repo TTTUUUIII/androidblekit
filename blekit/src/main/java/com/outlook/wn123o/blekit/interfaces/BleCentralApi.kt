@@ -1,6 +1,7 @@
 package com.outlook.wn123o.blekit.interfaces
 
 import android.bluetooth.BluetoothDevice
+import com.outlook.wn123o.blekit.central.BleCentralCallback
 import java.util.UUID
 
 interface BleCentralApi: BleApi<BleCentralCallback> {
