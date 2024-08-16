@@ -49,7 +49,6 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
     
     override fun onConnectionStateChange(device: BluetoothDevice, status: Int, newState: Int) {
         debug("onConnectionStateChange: {state=$status, newState=$newState}")
-        mState = newState
         when (newState) {
             BluetoothGatt.STATE_CONNECTING -> {
                 callback.onConnectionStateChanged(ConnectionState.CONNECTING, device.address)
@@ -72,6 +71,7 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
             }
             else -> {}
         }
+        mState = newState
     }
 
     override fun onServiceAdded(status: Int, service: BluetoothGattService?) {
