@@ -25,6 +25,8 @@ object BleEnvironment {
 
     internal var expectMtuSize = 185
 
+    internal var centralFeatureUseDeprecatedOnMessage = false
+
     internal val notificationDescriptorUuid: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
     @JvmField
@@ -59,6 +61,7 @@ object BleEnvironment {
         scanFeatureOnlyReportOnce = options.leScanFeatureOnlyReportOnce
         expectMtuSize = options.expectMtuSize
         logLevel = options.logLevel
+        centralFeatureUseDeprecatedOnMessage = options.centralFeatureUseDeprecatedOnMessage
     }
 
     @JvmStatic

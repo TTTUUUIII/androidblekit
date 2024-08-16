@@ -46,9 +46,12 @@ internal class BleGattCallbackImpl(
     
     override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
         debug("onConnectionStateChange: { state=${ConnectionState.string(status)}, newState=${ConnectionState.string(newState)} }")
-        mState = newState
         when (newState) {
             BluetoothGatt.STATE_CONNECTED -> {
+                if (isConnected()) {
+                    warn("Already connected,")
+                    return
+                }
                 mGatt = gatt;
                 mCallback.onConnectionStateChanged(ConnectionState.CONNECTED, gatt.device.address)
                 gatt.discoverServices()
@@ -66,6 +69,7 @@ internal class BleGattCallbackImpl(
             else -> {}
         }
         waiting = false
+        mState = newState
     }
 
     override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
@@ -120,9 +124,21 @@ internal class BleGattCallbackImpl(
 
     override fun onCharacteristicChanged(
         gatt: BluetoothGatt,
+        characteristic: BluetoothGattCharacteristic
+    ) {
+        super.onCharacteristicChanged(gatt, characteristic)
+        if (BleEnvironment.centralFeatureUseDeprecatedOnMessage) {
+            mCallback.onMessage(gatt.device.address, characteristic.uuid, characteristic.value, 0)
+        }
+    }
+
+    override fun onCharacteristicChanged(
+        gatt: BluetoothGatt,
         characteristic: BluetoothGattCharacteristic,
         value: ByteArray
     ) {
+        super.onCharacteristicChanged(gatt, characteristic, value)
+        if (BleEnvironment.centralFeatureUseDeprecatedOnMessage) return
         mCallback.onMessage(gatt.device.address, characteristic.uuid, value, 0)
     }
 
@@ -164,10 +180,11 @@ internal class BleGattCallbackImpl(
     
     override fun close() {
         if (isConnected()) {
-            mCallback.onConnectionStateChanged(ConnectionState.DISCONNECTING, mGatt!!.device.address)
-            mGatt!!.disconnect()
-            mGatt!!.close()
-            mGatt = null
+            try {
+                mGatt!!.disconnect()
+                mGatt!!.close()
+                mGatt = null
+            } catch (ignored: NullPointerException) {}
         }
     }
 

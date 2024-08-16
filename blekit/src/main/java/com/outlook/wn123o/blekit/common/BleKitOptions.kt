@@ -14,6 +14,7 @@ data class BleKitOptions @JvmOverloads constructor(
     var leScanFeatureOnlyReportOnce: Boolean = true,
     var leAdvertiseMode: Int = AdvertiseSettings.ADVERTISE_MODE_LOW_POWER,
     var leAdvertiseFeatureIncludeDeviceName: Boolean = false,
+    var centralFeatureUseDeprecatedOnMessage: Boolean = false,
     var expectMtuSize: Int = MTU_DEFAULT_SIZE,
     var logLevel: Int = Log.ERROR
 ) {

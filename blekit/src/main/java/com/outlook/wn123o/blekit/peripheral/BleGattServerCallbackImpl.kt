@@ -14,6 +14,7 @@ import android.os.Build
 import com.outlook.wn123o.blekit.BleEnvironment
 import com.outlook.wn123o.blekit.common.debug
 import com.outlook.wn123o.blekit.common.message
+import com.outlook.wn123o.blekit.common.warn
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralEventListener
 import com.outlook.wn123o.blekit.interfaces.ConnectionState
 import java.util.UUID
@@ -54,6 +55,10 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
                 callback.onConnectionStateChanged(ConnectionState.CONNECTING, device.address)
             }
             BluetoothGatt.STATE_CONNECTED -> {
+                if (isConnected(device.address)) {
+                    warn("Already connected,")
+                    return
+                }
                 mGattServer!!.connect(device, false)
                 callback.onConnectionStateChanged(ConnectionState.CONNECTED, device.address)
                 mConnection = device

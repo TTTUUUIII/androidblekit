@@ -17,6 +17,7 @@ class App: Application() {
         options.leAdvertiseMode = AdvertiseSettings.ADVERTISE_MODE_BALANCED
         options.logLevel = Log.DEBUG
         options.leAdvertiseFeatureIncludeDeviceName = true
+        options.centralFeatureUseDeprecatedOnMessage = true
         BleEnvironment.initialize(this, options)
         sGlobalContextRef = WeakReference(this)
     }
