@@ -10,4 +10,5 @@ interface BleCentralApi: BleApi<BleCentralCallback> {
     fun connect(device: BluetoothDevice)
     fun disconnect(bleAddress: String)
     fun readRemoteRssi(bleAddress: String): Boolean
+    fun requestMtu(bleAddress: String, mtu: Int)
 }

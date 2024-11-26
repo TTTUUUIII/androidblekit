@@ -14,24 +14,29 @@ public final class BleGattService {
     public final UUID uuid;
     private final Collection<UUID> uuidsForNotification;
     private final Collection<UUID> uuidsForWritable;
+    private final Collection<UUID> uuidsForWritableNoResponse;
     public final List<BluetoothGattCharacteristic> characteristicsForNotification = new ArrayList<>();
     public final List<BluetoothGattCharacteristic> characteristicsForWritable = new ArrayList<>();
+    public final List<BluetoothGattCharacteristic> characteristicsForWritableNoResponse = new ArrayList<>();
     public final BluetoothGattService service;
 
-    private BleGattService(UUID uuid, Collection<UUID> uuidsForNotification, Collection<UUID> uuidsForWritable) {
+    private BleGattService(UUID uuid, Collection<UUID> uuidsForNotification, Collection<UUID> uuidsForWritable, Collection<UUID> uuidsForWritableNoResponse) {
         this.uuid = uuid;
         this.uuidsForWritable = uuidsForWritable;
         this.uuidsForNotification = uuidsForNotification;
+        this.uuidsForWritableNoResponse = uuidsForWritableNoResponse;
         service = new BluetoothGattService(uuid, BluetoothGattService.SERVICE_TYPE_PRIMARY);
         generateCharacteristics();
         characteristicsForWritable.forEach(service::addCharacteristic);
         characteristicsForNotification.forEach(service::addCharacteristic);
+        characteristicsForWritableNoResponse.forEach(service::addCharacteristic);
     }
 
     public static class Builder {
         private final UUID uuid;
         public final List<UUID> uuidsForNotification = new ArrayList<>();
         public final List<UUID> uuidsForWritable = new ArrayList<>();
+        public final List<UUID> uuidsForWritableNoResponse = new ArrayList<>();
 
         public Builder(UUID uuid) {
             this.uuid = uuid;
@@ -45,8 +50,12 @@ public final class BleGattService {
             uuidsForWritable.add(uuid);
         }
 
+        public void addUuidForWritableNoResponse(UUID uuid) {
+            uuidsForWritableNoResponse.add(uuid);
+        }
+
         public BleGattService build() {
-            return new BleGattService(uuid, uuidsForNotification, uuidsForWritable);
+            return new BleGattService(uuid, uuidsForNotification, uuidsForWritable, uuidsForWritableNoResponse);
         }
     }
 
@@ -67,6 +76,14 @@ public final class BleGattService {
             );
             characteristicsForWritable.add(characteristic);
         });
+        uuidsForWritableNoResponse.forEach(uuid -> {
+            BluetoothGattCharacteristic characteristic = new BluetoothGattCharacteristic(
+                    uuid,
+                    BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE,
+                    BluetoothGattCharacteristic.PERMISSION_WRITE
+            );
+            characteristicsForWritableNoResponse.add(characteristic);
+        });
     }
 
     public boolean isExistInNotification(BluetoothGattCharacteristic characteristic) {
@@ -74,6 +91,6 @@ public final class BleGattService {
     }
 
     public boolean isExistInWritable(BluetoothGattCharacteristic characteristic) {
-        return uuidsForWritable.contains(characteristic.getUuid());
+        return uuidsForWritable.contains(characteristic.getUuid()) || uuidsForWritableNoResponse.contains(characteristic.getUuid());
     }
 }

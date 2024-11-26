@@ -45,6 +45,7 @@ object BleEnvironment {
         this.applicationContext = Objects.requireNonNull(applicationContext)
         val builder = BleGattService.Builder(options.uuidForGattService)
         builder.addUuidForWritable(options.uuidForWritable)
+        builder.addUuidForWritableNoResponse(options.uuidForWritableNoResponse)
         options.uuidsForNotification.forEach(builder::addUuidForNotification)
         bleGattService = builder.build()
         uuidForAdvertise = options.uuidForAdvertise

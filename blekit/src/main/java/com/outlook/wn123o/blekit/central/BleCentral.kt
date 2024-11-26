@@ -88,7 +88,13 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
         }
     }
 
-    
+    override fun onCharacteristicWrite(uuid: UUID, success: Boolean) {
+        runOnUiThread {
+            mExternCallback?.onCharacteristicWrite(uuid, success)
+        }
+    }
+
+
     override fun disconnect(bleAddress: String) {
         mConnections
             .remove(bleAddress)
@@ -131,7 +137,11 @@ class BleCentral(private var mExternCallback: BleCentralCallback? = null): BleCe
         return false
     }
 
-    
+    override fun requestMtu(bleAddress: String, mtu: Int) {
+        mConnections[bleAddress]?.requestMtu(mtu)
+    }
+
+
     companion object {
 
         const val ERR_CONNECT_FAILED = 1

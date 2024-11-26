@@ -120,6 +120,7 @@ internal class BleGattCallbackImpl(
         status: Int
     ) {
         debug("onCharacteristicWrite: { status=$status }")
+        mCallback.onCharacteristicWrite(characteristic!!.uuid, status == BluetoothGatt.GATT_SUCCESS)
     }
 
     override fun onCharacteristicChanged(
@@ -186,6 +187,10 @@ internal class BleGattCallbackImpl(
                 mGatt = null
             } catch (ignored: NullPointerException) {}
         }
+    }
+
+    fun requestMtu(mtu: Int) {
+        mGatt?.requestMtu(mtu)
     }
 
     fun isConnected(): Boolean = mState == ConnectionState.CONNECTED
