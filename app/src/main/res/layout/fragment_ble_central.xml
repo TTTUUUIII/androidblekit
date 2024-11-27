@@ -19,15 +19,21 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingVertical="8dp"
+                android:paddingVertical="4dp"
                 android:textStyle="bold"
                 android:text="@{ @string/str_status + viewModel.connectState}"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingVertical="8dp"
+                android:paddingVertical="4dp"
                 android:textStyle="bold"
                 android:text="@{ @string/str_le_address + viewModel.remoteAddressState }"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="4dp"
+                android:textStyle="bold"
+                android:text="@{ @string/str_le_mtu + viewModel.mtu }"/>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -45,6 +51,24 @@
                     android:layout_height="wrap_content"
                     android:onClick="@{viewModel::onAction}"
                     android:text="@string/str_refresh" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <EditText
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:inputType="number"
+                    android:text="@={viewModel.mtuInText}"
+                    android:layout_height="wrap_content" />
+                <Button
+                    android:id="@+id/request_mtu_button"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="@{viewModel::onAction}"
+                    android:text="@string/request_mtu" />
             </LinearLayout>
         </LinearLayout>
         <FrameLayout

@@ -6,4 +6,6 @@ internal interface BlePeripheralEventListener: BleCallback {
      * @param error Int
      */
     fun onError(error: Int) {}
+
+    fun onNotificationSent(bleAddress: String, success: Boolean) {}
 }

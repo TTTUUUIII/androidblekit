@@ -63,5 +63,10 @@ class BlePeripheralFragmentViewModel: BaseViewModel() {
                 blePeripheral.startup()
             }
         }
+
+        override fun onMtuChanged(bleAddress: String, mtu: Int) {
+            super.onMtuChanged(bleAddress, mtu)
+            updateMtu(mtu)
+        }
     }
 }

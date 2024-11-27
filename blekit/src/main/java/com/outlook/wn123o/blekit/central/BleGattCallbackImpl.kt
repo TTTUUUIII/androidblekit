@@ -38,10 +38,12 @@ internal class BleGattCallbackImpl(
 
     override fun onPhyUpdate(gatt: BluetoothGatt?, txPhy: Int, rxPhy: Int, status: Int) {
         super.onPhyUpdate(gatt, txPhy, rxPhy, status)
+        debug("onPhyUpdate: $txPhy, $rxPhy, $status")
     }
 
     override fun onPhyRead(gatt: BluetoothGatt?, txPhy: Int, rxPhy: Int, status: Int) {
         super.onPhyRead(gatt, txPhy, rxPhy, status)
+        debug("onPhyRead: $txPhy, $rxPhy, $status")
     }
     
     override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
@@ -89,7 +91,11 @@ internal class BleGattCallbackImpl(
                         if (characteristic.hasProperty(BluetoothGattCharacteristic.PROPERTY_WRITE) || characteristic.hasProperty(BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE)) {
                             mWritableCharacteristics.add(characteristic)
                             mCallback.onCharacteristicRegistered(characteristic.uuid, false)
-                            debug("Registered characteristic {uuid=${characteristic.uuid}, type=writable}")
+                            if (characteristic.hasProperty(BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE)) {
+                                debug("Registered characteristic {uuid=${characteristic.uuid}, type=writable_no_response}")
+                            } else {
+                                debug("Registered characteristic {uuid=${characteristic.uuid}, type=writable}")
+                            }
                         } else {
                             warn("Unable register characteristics {uuid=${characteristic.uuid}}, because it is not a writable type!")
                         }

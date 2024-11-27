@@ -13,6 +13,7 @@ import android.content.Context
 import android.os.Build
 import com.outlook.wn123o.blekit.BleEnvironment
 import com.outlook.wn123o.blekit.common.debug
+import com.outlook.wn123o.blekit.common.info
 import com.outlook.wn123o.blekit.common.message
 import com.outlook.wn123o.blekit.common.warn
 import com.outlook.wn123o.blekit.interfaces.BlePeripheralEventListener
@@ -156,6 +157,7 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
 
     override fun onNotificationSent(device: BluetoothDevice?, status: Int) {
         debug("onNotificationSent: { device=${device?.address}, status=$status }")
+        callback.onNotificationSent(device!!.address, status == BluetoothGatt.GATT_SUCCESS)
     }
 
     override fun onMtuChanged(device: BluetoothDevice?, mtu: Int) {
@@ -164,11 +166,11 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
     }
 
     override fun onPhyUpdate(device: BluetoothDevice?, txPhy: Int, rxPhy: Int, status: Int) {
-
+        info("onPhyUpdate: { device=${device?.address}, txPhy=$txPhy, rxPhy=$rxPhy, status=$status }")
     }
 
     override fun onPhyRead(device: BluetoothDevice?, txPhy: Int, rxPhy: Int, status: Int) {
-
+        debug("onPhyRead: { device=${device?.address}, txPhy=$txPhy, rxPhy=$rxPhy, status=$status }")
     }
 
     fun isConnected(address: String?): Boolean {

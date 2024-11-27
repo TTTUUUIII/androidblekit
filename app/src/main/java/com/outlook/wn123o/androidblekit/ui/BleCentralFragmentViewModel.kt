@@ -2,7 +2,9 @@ package com.outlook.wn123o.androidblekit.ui
 
 import android.bluetooth.BluetoothDevice
 import android.view.View
+import android.widget.Toast
 import com.outlook.wn123o.androidblekit.R
+import com.outlook.wn123o.androidblekit.common.requireApplicationContext
 import com.outlook.wn123o.androidblekit.common.timeZone
 import com.outlook.wn123o.blekit.central.BleCentral
 import com.outlook.wn123o.blekit.central.BleCentralCallback
@@ -17,6 +19,8 @@ class BleCentralFragmentViewModel: BaseViewModel() {
     private val TAG = BleCentralFragmentViewModel::class.java.simpleName
 
     private val bleCentral = BleCentral(CentralCallback())
+
+    var mtuInText = "23"
 
     private var _connectState = MutableStateFlow("未连接")
     val connectState = _connectState.asStateFlow()
@@ -46,6 +50,14 @@ class BleCentralFragmentViewModel: BaseViewModel() {
         when(view.id) {
             R.id.send_msg_button -> if (txMsg.isNotEmpty()) writeBytes(txMsg.encodeToByteArray())
             R.id.refresh_rssi_button -> if (bleCentral.isConnected(null)) bleCentral.readRemoteRssi(remoteAddressState.value)
+            R.id.request_mtu_button -> {
+                try {
+                    val newMtu = mtuInText.toInt()
+                    if (remoteAddressState.value.isNotEmpty()) bleCentral.requestMtu(remoteAddressState.value, newMtu)
+                } catch (e: NumberFormatException) {
+                    Toast.makeText(requireApplicationContext(), R.string.failure, Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -72,6 +84,12 @@ class BleCentralFragmentViewModel: BaseViewModel() {
         override fun onConnectionStateChanged(state: Int, address: String) {
             updateConnectState(ConnectionState.string(state))
             updateRemoteAddressState(if (state == ConnectionState.DISCONNECTED) "" else address)
+        }
+
+        override fun onMtuChanged(bleAddress: String, mtu: Int) {
+            super.onMtuChanged(bleAddress, mtu)
+            updateMtu(mtu)
+            mtuInText = mtu.toString()
         }
     }
 }

@@ -38,6 +38,13 @@ open class BaseViewModel: ViewModel(), WrapperContext {
     private var _remoteAddressState = MutableStateFlow("")
     val remoteAddressState = _remoteAddressState.asStateFlow()
 
+    private var _mtu = MutableStateFlow(23)
+    val mtu = _mtu.asStateFlow()
+
+    fun updateMtu(mtu: Int) {
+        _mtu.update { mtu }
+    }
+
     fun updateRemoteAddressState(newState: String) {
         _remoteAddressState.update {
             newState

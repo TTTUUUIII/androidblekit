@@ -27,6 +27,10 @@ internal fun <T> T.warn(msg: String) {
     }
 }
 
+internal fun <T> T.info(msg: String) {
+    message(msg)
+}
+
 internal fun <T> T.message(msg: String) {
     if (BleEnvironment.logLevel <= Log.INFO) {
         Log.i(LOG_TAG, "[INFO] $msg")

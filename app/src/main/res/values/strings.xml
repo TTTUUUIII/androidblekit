@@ -19,7 +19,10 @@
     <string name="str_refresh">刷新</string>
     <string name="str_status">状态：</string>
     <string name="str_le_address">蓝牙地址：</string>
+    <string name="str_le_mtu">MTU：</string>
     <string name="str_connected">已连接</string>
     <string name="str_disconnected">未连接</string>
     <string name="str_filter_by_name">过滤器</string>
+    <string name="request_mtu">请求Mtu</string>
+    <string name="failure">Failure</string>
 </resources>

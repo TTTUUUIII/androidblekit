@@ -91,6 +91,12 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
         }
     }
 
+    override fun onNotificationSent(bleAddress: String, success: Boolean) {
+        runOnUiThread {
+            mExternCallback?.onNotificationSent(bleAddress, success)
+        }
+    }
+
     override fun onConnectionStateChanged(@ConnectionState state: Int, address: String) {
         runOnUiThread {
             mExternCallback?.onConnectionStateChanged(state, address)
@@ -103,6 +109,13 @@ class BlePeripheral(private var mExternCallback: BlePeripheralCallback? = null):
             } else if (state == ConnectionState.DISCONNECTED) {
                 mExternCallback?.onDisconnected(address)
             }
+        }
+    }
+
+    override fun onMtuChanged(bleAddress: String, mtu: Int) {
+        super.onMtuChanged(bleAddress, mtu)
+        runOnUiThread {
+            mExternCallback?.onMtuChanged(bleAddress, mtu)
         }
     }
 
