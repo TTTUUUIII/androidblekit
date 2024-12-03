@@ -6,6 +6,7 @@
         <variable
             name="viewModel"
             type="com.outlook.wn123o.androidblekit.ui.BaseViewModel" />
+        <import type="android.view.View" />
     </data>
 
     <LinearLayout
@@ -13,6 +14,12 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="@{viewModel.progress >= viewModel.progressMax ? View.GONE : View.VISIBLE}"
+            android:max="@{viewModel.progressMax}"
+            android:progress="@{viewModel.progress}"/>
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -26,7 +33,7 @@
         <LinearLayout
             android:id="@+id/line2"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="52dp"
             android:orientation="horizontal">
             <EditText
                 android:layout_width="0dp"
@@ -35,15 +42,27 @@
                 android:hint="@string/str_input_msg"
                 android:inputType="text"
                 android:text="@={viewModel.txMsg}"
-                android:layout_height="wrap_content" />
+                android:layout_height="match_parent" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/select_file_button"
+                android:layout_width="52dp"
+                android:layout_height="match_parent"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                app:iconPadding="0dp"
+                android:layout_marginEnd="5dp"
+                app:iconGravity="textStart"
+                app:icon="@drawable/ic_attach_file_24dp"
+                android:onClick="@{viewModel::onAction}"
+                app:cornerRadius="3dp" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/send_msg_button"
                 app:icon="@drawable/ic_arrow_outward"
                 app:iconGravity="textEnd"
                 android:onClick="@{viewModel::onAction}"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:cornerRadius = "5dp"
+                android:layout_height="match_parent"
+                app:cornerRadius = "3dp"
                 android:text="@string/str_send"/>
         </LinearLayout>
     </LinearLayout>

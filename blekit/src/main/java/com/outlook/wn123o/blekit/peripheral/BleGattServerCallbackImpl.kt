@@ -12,6 +12,8 @@ import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.os.Build
 import com.outlook.wn123o.blekit.BleEnvironment
+import com.outlook.wn123o.blekit.common.BleMsg
+import com.outlook.wn123o.blekit.common.BleMsgQueue
 import com.outlook.wn123o.blekit.common.debug
 import com.outlook.wn123o.blekit.common.info
 import com.outlook.wn123o.blekit.common.message
@@ -30,6 +32,7 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
 
     private var mConnection: BluetoothDevice? = null
     private var mState = ConnectionState.DISCONNECTED
+    private val mMsgQueue = BleMsgQueue()
 
     init { prepareGatt() }
 
@@ -158,6 +161,12 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
     override fun onNotificationSent(device: BluetoothDevice?, status: Int) {
         debug("onNotificationSent: { device=${device?.address}, status=$status }")
         callback.onNotificationSent(device!!.address, status == BluetoothGatt.GATT_SUCCESS)
+        if (mMsgQueue.isNotEmpty()) {
+            val msg = mMsgQueue.poll()
+            writeCharacteristic(msg!!.characteristic, msg.data)
+        } else {
+            mMsgQueue.isActive = false
+        }
     }
 
     override fun onMtuChanged(device: BluetoothDevice?, mtu: Int) {
@@ -201,24 +210,33 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
     }
     
     private fun writeBytes(characteristic: BluetoothGattCharacteristic, bytes: ByteArray): Boolean {
-        val device = mConnection ?: return false
+        if (mConnection == null) return false
+        if (mMsgQueue.isActive) {
+            mMsgQueue.add(BleMsg(bytes, characteristic))
+        } else {
+            writeCharacteristic(characteristic, bytes)
+            mMsgQueue.isActive = true
+        }
+        return true
+    }
+
+    private fun writeCharacteristic(characteristic: BluetoothGattCharacteristic, data: ByteArray) {
         val indicate = characteristic
             .properties and BluetoothGattCharacteristic.PROPERTY_INDICATE == BluetoothGattCharacteristic.PROPERTY_INDICATE
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             mGattServer?.notifyCharacteristicChanged(
-                device,
+                mConnection!!,
                 characteristic,
                 indicate,
-                bytes
+                data
             )
         } else {
-            characteristic.value = bytes
+            characteristic.value = data
             mGattServer?.notifyCharacteristicChanged(
-                device,
+                mConnection!!,
                 characteristic,
                 indicate
             )
         }
-        return true
     }
 }

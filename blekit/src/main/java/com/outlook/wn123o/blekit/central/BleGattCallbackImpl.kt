@@ -8,7 +8,14 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.content.Context
 import android.os.Build
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.Looper
+import android.os.SystemClock
 import com.outlook.wn123o.blekit.BleEnvironment
+import com.outlook.wn123o.blekit.common.BleHandler
+import com.outlook.wn123o.blekit.common.BleMsg
+import com.outlook.wn123o.blekit.common.BleMsgQueue
 import com.outlook.wn123o.blekit.common.debug
 import com.outlook.wn123o.blekit.common.error
 import com.outlook.wn123o.blekit.common.hasProperty
@@ -30,6 +37,7 @@ internal class BleGattCallbackImpl(
     private val mWritableCharacteristics = mutableListOf<BluetoothGattCharacteristic>()
     private var waiting = true
     private var mState = ConnectionState.DISCONNECTED
+    private var mMsgQueue = BleMsgQueue()
 
     init {
         mRemote.connectGatt(context, false, this)
@@ -127,6 +135,12 @@ internal class BleGattCallbackImpl(
     ) {
         debug("onCharacteristicWrite: { status=$status }")
         mCallback.onCharacteristicWrite(characteristic!!.uuid, status == BluetoothGatt.GATT_SUCCESS)
+        if (mMsgQueue.isNotEmpty()) {
+            val msg = mMsgQueue.remove()
+            writeCharacteristic(msg.characteristic, msg.data, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
+        } else {
+            mMsgQueue.isActive = false
+        }
     }
 
     override fun onCharacteristicChanged(
@@ -218,6 +232,22 @@ internal class BleGattCallbackImpl(
             } else {
                 BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
             }
+            if (writeType == BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE) {
+                writeCharacteristic(characteristic, data, writeType)
+            } else {
+                if (!mMsgQueue.isActive) {
+                    writeCharacteristic(characteristic, data, writeType)
+                    mMsgQueue.isActive = true
+                } else {
+                    mMsgQueue.add(BleMsg(data, characteristic))
+                }
+            }
+        }
+        return mGatt != null
+    }
+
+    private fun writeCharacteristic(characteristic: BluetoothGattCharacteristic, data: ByteArray, writeType: Int) {
+        mGatt?.let { gatt ->
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 gatt.writeCharacteristic(
                     characteristic,
@@ -230,7 +260,6 @@ internal class BleGattCallbackImpl(
                 gatt.writeCharacteristic(characteristic)
             }
         }
-        return mGatt != null
     }
 
     fun readRemoteRssi() {

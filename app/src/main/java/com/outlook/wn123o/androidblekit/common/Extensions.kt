@@ -1,13 +1,19 @@
 package com.outlook.wn123o.androidblekit.common
 
 import android.content.Context
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
 import android.util.Log
+import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.annotation.ColorRes
 import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
+import androidx.preference.PreferenceManager
 import com.outlook.wn123o.androidblekit.App
 import com.outlook.wn123o.androidblekit.interfaces.WrapperContext
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -30,5 +36,38 @@ fun WrapperContext.getColor(@ColorRes resId: Int) = requireApplicationContext().
 
 fun WrapperContext.requireApplicationContext(): Context = applicationContext()!!
 
-val simpleDateFormat = SimpleDateFormat( "HH:mm:ss", Locale.US)
-fun <T> T.timeZone(): String = simpleDateFormat.format(System.currentTimeMillis())
+fun <T> T.timeZone(format: String = "HH:mm:ss"): String {
+    return SimpleDateFormat(format, Locale.US).format(System.currentTimeMillis())
+}
+
+fun Fragment.getExtensionName(uri: Uri): String {
+    return MimeTypeMap.getSingleton()
+        .getExtensionFromMimeType(requireActivity().contentResolver.getType(uri)) ?: "dat"
+}
+
+fun WrapperContext.newFileInDownloadsDir(extension: String): File =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Environment.isExternalStorageManager()) {
+        File(
+            "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath}/${
+                timeZone(
+                    "MMddHHmmss"
+                )
+            }.${extension}"
+        )
+    } else {
+        File(
+            "${requireApplicationContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)!!.absolutePath}/${
+                timeZone(
+                    "HHmmss"
+                )
+            }.${extension}"
+        )
+    }
+
+fun <T> Context.getSetting(key: String, defaultValue: T): T {
+    return (PreferenceManager.getDefaultSharedPreferences(this).all[key] ?: defaultValue) as T
+}
+
+fun <T> Context.getSetting(keyRes: Int, defaultValue: T): T {
+    return getSetting(getString(keyRes), defaultValue)
+}

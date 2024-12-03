@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-public class SimpleDataSlicer {
+public class SimplePacketizer {
     private static final String TAG = "DataCoder";
 
     public static final int SLICE_TYPE_BEGIN = 0;
@@ -16,30 +16,30 @@ public class SimpleDataSlicer {
     public static final int SLICE_TYPE_END = 2;
     private static final int CTRL_SLICE_SIZE = 10;
     private static final String EXTENSION_SIMPLE_STRING = "str";
-    private int sliceSizeInBytes;
+    private int packetSizeInBytes;
 
     private final Callback callback;
 
-    public SimpleDataSlicer(Callback callback) {
+    public SimplePacketizer(Callback callback) {
         this(callback, 20);
     }
 
-    public SimpleDataSlicer(Callback callback, int sliceSizeInBytes) {
+    public SimplePacketizer(Callback callback, int packetSizeInBytes) {
         this.callback = callback;
-        this.sliceSizeInBytes = sliceSizeInBytes;
+        this.packetSizeInBytes = packetSizeInBytes;
     }
 
-    public void setSliceSizeInBytes(int size) {
-        sliceSizeInBytes = size;
+    public void setPacketSizeInBytes(int size) {
+        packetSizeInBytes = size;
     }
 
     public void encode(@NonNull String text) {
         byte[] data = text.getBytes(StandardCharsets.UTF_8);
         callback.onTx(begin(EXTENSION_SIMPLE_STRING, data.length), SLICE_TYPE_BEGIN);
-        int frameCount = (int) Math.ceil((double) data.length / sliceSizeInBytes);
+        int frameCount = (int) Math.ceil((double) data.length / packetSizeInBytes);
         for (int i = 0; i < frameCount; ++i) {
-            int left = sliceSizeInBytes * i;
-            byte[] frame = left + sliceSizeInBytes < data.length ? new byte[sliceSizeInBytes] : new byte[data.length - left];
+            int left = packetSizeInBytes * i;
+            byte[] frame = left + packetSizeInBytes < data.length ? new byte[packetSizeInBytes] : new byte[data.length - left];
             System.arraycopy(data, left, frame, 0, frame.length);
             callback.onTx(frame, SLICE_TYPE_DATA);
         }
@@ -56,7 +56,7 @@ public class SimpleDataSlicer {
 
     public void encode(@NonNull InputStream in, @NonNull String extension, int length) throws IOException {
         callback.onTx(begin(extension, length), SLICE_TYPE_BEGIN);
-        byte[] frame = new byte[sliceSizeInBytes];
+        byte[] frame = new byte[packetSizeInBytes];
         int readNumInBytes;
         while ((readNumInBytes = in.read(frame)) != -1) {
             if (readNumInBytes > 0) {
@@ -117,6 +117,6 @@ public class SimpleDataSlicer {
         void onRxBegin(@NonNull String extension, int length);
         void onRx(byte[] slice);
         void onRxEnd();
-        void onTx(byte[] slice, int sliceType);
+        void onTx(@NonNull byte[] slice, int sliceType);
     }
 }

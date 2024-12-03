@@ -1,20 +1,35 @@
 package com.outlook.wn123o.androidblekit.ui
 
+import android.util.Log
 import android.view.View
+import androidx.lifecycle.MutableLiveData
 import com.outlook.wn123o.androidblekit.R
+import com.outlook.wn123o.androidblekit.common.getSetting
 import com.outlook.wn123o.androidblekit.common.getString
+import com.outlook.wn123o.androidblekit.common.newFileInDownloadsDir
+import com.outlook.wn123o.androidblekit.common.requireApplicationContext
 import com.outlook.wn123o.androidblekit.common.timeZone
 import com.outlook.wn123o.blekit.interfaces.ConnectionState
 import com.outlook.wn123o.blekit.peripheral.BlePeripheral
 import com.outlook.wn123o.blekit.peripheral.BlePeripheralCallback
+import com.outlook.wn123o.blekit.util.SimplePacketizer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.io.OutputStream
 import java.util.UUID
 
-class BlePeripheralFragmentViewModel: BaseViewModel() {
+class BlePeripheralFragmentViewModel: BaseViewModel(), SimplePacketizer.Callback {
 
+    private var _event = MutableLiveData<Int>()
+    val event = _event
     private val blePeripheral = BlePeripheral(PeripheralCallback())
+    private var simpleDataSlicer =
+        SimplePacketizer(this, requireApplicationContext().getSetting(R.string.key_setting_default_mtu, "20").toInt())
 
     private var _connectState = MutableStateFlow(getString(R.string.str_disconnected))
     val connectState = _connectState.asStateFlow()
@@ -25,15 +40,16 @@ class BlePeripheralFragmentViewModel: BaseViewModel() {
         }
     }
 
-    private fun writeBytes(bytes: ByteArray) {
-        if (!blePeripheral.isConnected() || !blePeripheral.writeBytes(bytes)) {
-            toast(R.string.str_send_failure)
-        }
+    fun sendStream(inputStream: InputStream, extension: String) {
+        simpleDataSlicer.encode(inputStream, extension, inputStream.available())
     }
 
     override fun onAction(view: View) {
         when(view.id) {
-            R.id.send_msg_button -> if (txMsg.isNotEmpty()) writeBytes(txMsg.encodeToByteArray())
+            R.id.send_msg_button -> if (txMsg.isNotEmpty()) simpleDataSlicer.encode(txMsg)
+            R.id.select_file_button -> {
+                _event.postValue(EVENT_SELECT_SEND_FILE)
+            }
         }
     }
 
@@ -47,7 +63,8 @@ class BlePeripheralFragmentViewModel: BaseViewModel() {
 
     private inner class PeripheralCallback: BlePeripheralCallback() {
         override fun onMessage(address: String, characteristic: UUID, bytes: ByteArray, offset: Int) {
-            putMsg("${timeZone()}: ${String(bytes)}")
+            simpleDataSlicer.decode(bytes)
+            Log.d("DEBUG", bytes.contentToString())
         }
 
         override fun onError(error: Int) {
@@ -68,5 +85,46 @@ class BlePeripheralFragmentViewModel: BaseViewModel() {
             super.onMtuChanged(bleAddress, mtu)
             updateMtu(mtu)
         }
+    }
+
+    companion object {
+        const val EVENT_SELECT_SEND_FILE = 1
+    }
+
+    private var outStream: OutputStream? = null
+    private var outFile: File? = null
+
+    override fun onRxBegin(extension: String, length: Int) {
+        setProgressMax(length)
+        setProgress(0)
+        when(extension) {
+            "str" -> {
+                outStream = ByteArrayOutputStream()
+            }
+            else -> {
+                outFile = newFileInDownloadsDir(extension)
+                outStream = FileOutputStream(outFile)
+            }
+        }
+    }
+
+    override fun onRx(slice: ByteArray) {
+        outStream?.write(slice)
+        setProgress(progress.value + slice.size)
+    }
+
+    override fun onRxEnd() {
+        outStream?.flush()
+        outStream?.close()
+        if (outStream is ByteArrayOutputStream) {
+            putMsg("${timeZone()}: ${outStream.toString()}")
+        } else {
+            toast("${outFile?.name} saved!")
+        }
+        outStream = null
+    }
+
+    override fun onTx(slice: ByteArray, sliceType: Int) {
+        blePeripheral.writeBytes(slice)
     }
 }
