@@ -12,6 +12,8 @@ import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModelProvider
+import com.outlook.wn123o.androidblekit.common.Msg
+import com.outlook.wn123o.androidblekit.common.MsgHistoryViewAdapter
 import com.outlook.wn123o.androidblekit.common.getExtensionName
 import com.outlook.wn123o.androidblekit.databinding.FragmentBleCentralBinding
 import com.outlook.wn123o.androidblekit.databinding.MessageWindowViewBinding
@@ -32,7 +34,7 @@ class BleCentralFragment : Fragment() {
 
     private var mBluetoothDevice: BluetoothDevice? = null
     private lateinit var startActivityForResult: ActivityResultLauncher<Intent>
-
+    private val adapter = MsgHistoryViewAdapter()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mBluetoothDevice = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -79,6 +81,9 @@ class BleCentralFragment : Fragment() {
         binding.lifecycleOwner = this
         messageBinding.viewModel = mViewModel
         messageBinding.lifecycleOwner = this
+        messageBinding.adapter = adapter
+        val listOf = listOf(Msg(Msg.TYPE_TEXT, "1111111111"))
+        adapter.submitList(listOf)
     }
 
     override fun onDestroy() {

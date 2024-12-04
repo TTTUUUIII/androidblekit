@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.outlook.wn123o.androidblekit.R
+import com.outlook.wn123o.androidblekit.common.Msg
 import com.outlook.wn123o.androidblekit.common.requireApplicationContext
 import com.outlook.wn123o.androidblekit.interfaces.WrapperContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,12 +24,15 @@ open class BaseViewModel: ViewModel(), WrapperContext {
     val progressMax = _progressMax.asStateFlow()
     private var rxMsg: StringBuilder = StringBuilder("")
     private var _rxMsgState = MutableLiveData<String>("")
+    private var history = mutableListOf<Msg>()
+    private var _historyState = MutableLiveData(history)
+    val msgHistory = _historyState
 
     val rxMsgState: LiveData<String> = _rxMsgState
 
-    fun putMsg(msg: String) {
-        rxMsg.insert(0, "$msg\n")
-        postMsg()
+    fun putMsg(type: Int, content: String) {
+        history.add(Msg(type, content))
+        _historyState.value = history
     }
 
     fun setProgressMax(max: Int) {

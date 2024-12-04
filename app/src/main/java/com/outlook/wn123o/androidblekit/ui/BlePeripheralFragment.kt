@@ -13,6 +13,8 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModelProvider
+import com.outlook.wn123o.androidblekit.common.Msg
+import com.outlook.wn123o.androidblekit.common.MsgHistoryViewAdapter
 import com.outlook.wn123o.androidblekit.common.getExtensionName
 import com.outlook.wn123o.androidblekit.databinding.FragmentBlePeripheralBinding
 import com.outlook.wn123o.androidblekit.databinding.MessageWindowViewBinding
@@ -32,6 +34,8 @@ class BlePeripheralFragment : Fragment() {
     private val mViewModel by lazy {
         ViewModelProvider(this)[BlePeripheralFragmentViewModel::class.java]
     }
+
+    private val adapter = MsgHistoryViewAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,6 +74,7 @@ class BlePeripheralFragment : Fragment() {
         binding.lifecycleOwner = this
         messageBinding.viewModel = mViewModel
         messageBinding.lifecycleOwner = this
+        messageBinding.adapter = adapter
     }
 
     override fun onDestroy() {

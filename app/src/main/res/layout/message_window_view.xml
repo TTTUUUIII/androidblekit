@@ -7,6 +7,9 @@
             name="viewModel"
             type="com.outlook.wn123o.androidblekit.ui.BaseViewModel" />
         <import type="android.view.View" />
+        <variable
+            name="adapter"
+            type="com.outlook.wn123o.androidblekit.common.MsgHistoryViewAdapter" />
     </data>
 
     <LinearLayout
@@ -17,19 +20,17 @@
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:visibility="@{viewModel.progress >= viewModel.progressMax ? View.GONE : View.VISIBLE}"
+            android:visibility="@{viewModel.progress >= viewModel.progressMax ? View.INVISIBLE : View.VISIBLE}"
             android:max="@{viewModel.progressMax}"
             android:progress="@{viewModel.progress}"/>
-        <ScrollView
+        <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@{viewModel.rxMsgState}" />
-        </ScrollView>
-
+            android:layout_weight="1"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            android:adapter="@{adapter}"
+            app:submit="@{viewModel.msgHistory}"
+            />
         <LinearLayout
             android:id="@+id/line2"
             android:layout_width="match_parent"

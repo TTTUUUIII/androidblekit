@@ -4,6 +4,7 @@ import android.util.Log
 import android.view.View
 import androidx.lifecycle.MutableLiveData
 import com.outlook.wn123o.androidblekit.R
+import com.outlook.wn123o.androidblekit.common.Msg
 import com.outlook.wn123o.androidblekit.common.getSetting
 import com.outlook.wn123o.androidblekit.common.getString
 import com.outlook.wn123o.androidblekit.common.newFileInDownloadsDir
@@ -117,9 +118,9 @@ class BlePeripheralFragmentViewModel: BaseViewModel(), SimplePacketizer.Callback
         outStream?.flush()
         outStream?.close()
         if (outStream is ByteArrayOutputStream) {
-            putMsg("${timeZone()}: ${outStream.toString()}")
+            putMsg(Msg.TYPE_TEXT, outStream.toString())
         } else {
-            toast("${outFile?.name} saved!")
+            putMsg(Msg.TYPE_FILE, outFile!!.absolutePath)
         }
         outStream = null
     }
