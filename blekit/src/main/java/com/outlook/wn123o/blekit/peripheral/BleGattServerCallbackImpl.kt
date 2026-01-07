@@ -32,7 +32,7 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
 
     private var mConnection: BluetoothDevice? = null
     private var mState = ConnectionState.DISCONNECTED
-    private val mMsgQueue = BleMsgQueue()
+//    private val mMsgQueue = BleMsgQueue()
 
     init { prepareGatt() }
 
@@ -161,12 +161,12 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
     override fun onNotificationSent(device: BluetoothDevice?, status: Int) {
         debug("onNotificationSent: { device=${device?.address}, status=$status }")
         callback.onNotificationSent(device!!.address, status == BluetoothGatt.GATT_SUCCESS)
-        if (mMsgQueue.isNotEmpty()) {
-            val msg = mMsgQueue.poll()
-            writeCharacteristic(msg!!.characteristic, msg.data)
-        } else {
-            mMsgQueue.isActive = false
-        }
+//        if (mMsgQueue.isNotEmpty()) {
+//            val msg = mMsgQueue.poll()
+//            writeCharacteristic(msg!!.characteristic, msg.data)
+//        } else {
+//            mMsgQueue.isActive = false
+//        }
     }
 
     override fun onMtuChanged(device: BluetoothDevice?, mtu: Int) {
@@ -211,12 +211,12 @@ internal class BleGattServerCallbackImpl() : BluetoothGattServerCallback() {
     
     private fun writeBytes(characteristic: BluetoothGattCharacteristic, bytes: ByteArray): Boolean {
         if (mConnection == null) return false
-        if (mMsgQueue.isActive) {
-            mMsgQueue.add(BleMsg(bytes, characteristic))
-        } else {
+//        if (mMsgQueue.isActive) {
+//            mMsgQueue.add(BleMsg(bytes, characteristic))
+//        } else {
             writeCharacteristic(characteristic, bytes)
-            mMsgQueue.isActive = true
-        }
+//            mMsgQueue.isActive = true
+//        }
         return true
     }
 
